@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace advert_site
 {
+    //test
     public class Program
     {
         public static void Main(string[] args)

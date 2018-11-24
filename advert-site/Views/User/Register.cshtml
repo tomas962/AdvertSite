@@ -1,0 +1,75 @@
+
+
+@{
+    ViewData["Title"] = "Registracija";
+}
+<head>
+</head>
+	<body>
+
+		<div class="container" style="min-width: 20%; max-width: 80%">
+			<div class="row main">
+				<div class="panel-heading">
+	               <div class="panel-title text-center">
+	               		<h1 class="title">@ViewData["Title"]</h1>
+	               		<hr />
+	               	</div>
+	            </div> 
+				<div class="main-login main-center">
+                    <form class="form-horizontal" method = "post" asp-controller = "User" asp-action = "Register"> 
+						<div asp-validation-summary = "ValidationSummary.ModelOnly"></div> 
+						<div class="form-group">
+							<label asp-for = "username" class="cols-sm-2 control-label">Vartotojo Vardas</label>
+							<div class="cols-sm-10">
+								<div class="input-group">
+									<span class="input-group-addon"><i class="fa fa-user fa" aria-hidden="true"></i></span>
+									<input class="form-control"  asp-for = "username"  placeholder="Vardas"/>
+                                    <span asp-validation-for = "username"></span> 
+                                </div>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label asp-for = "email" class="cols-sm-2 control-label">Elektroninis paštas</label>
+							<div class="cols-sm-10">
+								<div class="input-group">
+									<span class="input-group-addon"><i class="fa fa-envelope fa" aria-hidden="true"></i></span>
+									<input class="form-control" asp-for = "email" placeholder="El. Paštas"/>
+                                    <span asp-validation-for = "email"></span> 
+                                </div>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label asp-for = "password" class="cols-sm-2 control-label">Slaptažodis</label>
+							<div class="cols-sm-10">
+								<div class="input-group">
+									<span class="input-group-addon"><i class="fa fa-lock fa-lg" aria-hidden="true"></i></span>
+									<input class="form-control" asp-for = "password" placeholder="Slaptažodis"/>
+                                    <span asp-validation-for = "password"></span> 
+                                </div>
+
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label asp-for = "confirmPassword" class="cols-sm-2 control-label">Patvirtinti slaptažodį</label>
+							<div class="cols-sm-10">
+								<div class="input-group">
+									<span class="input-group-addon"><i class="fa fa-lock fa-lg" aria-hidden="true"></i></span>
+									<input class="form-control" asp-for = "confirmPassword" placeholder="Slaptažodis"/>
+								    <span asp-validation-for = "confirmPassword"></span> 
+                                </div>
+							</div>
+						</div>
+
+						<div class="form-group ">
+							<input type="submit" class="btn btn-primary btn-lg btn-block login-button" value="Registruotis">
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<script type="text/javascript" src="assets/js/bootstrap.js"></script>
+	</body>

@@ -49,7 +49,7 @@ namespace AdvertSite.Controllers
         public IActionResult Create()
         {
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Id");
-            ViewData["Userid"] = new SelectList(_context.Users, "Id", "Email");
+            ViewData["Userid"] = new SelectList(_context.Users, "Id", "Username");
             return View();
         }
 
@@ -67,7 +67,7 @@ namespace AdvertSite.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Id", listings.Subcategoryid);
-            ViewData["Userid"] = new SelectList(_context.Users, "Id", "Email", listings.Userid);
+            ViewData["Userid"] = new SelectList(_context.Users, "Id", "Username", listings.Userid);
             return View(listings);
         }
 
@@ -85,7 +85,7 @@ namespace AdvertSite.Controllers
                 return NotFound();
             }
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Id", listings.Subcategoryid);
-            ViewData["Userid"] = new SelectList(_context.Users, "Id", "Email", listings.Userid);
+            ViewData["Userid"] = new SelectList(_context.Users, "Id", "Username", listings.Userid);
             return View(listings);
         }
 
@@ -122,7 +122,7 @@ namespace AdvertSite.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Id", listings.Subcategoryid);
-            ViewData["Userid"] = new SelectList(_context.Users, "Id", "Email", listings.Userid);
+            ViewData["Userid"] = new SelectList(_context.Users, "Id", "Username", listings.Userid);
             return View(listings);
         }
 

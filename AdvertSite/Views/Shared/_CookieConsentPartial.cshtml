@@ -5,7 +5,10 @@
     var showBanner = !consentFeature?.CanTrack ?? false;
     var cookieString = consentFeature?.CreateConsentCookie();
 }
-
+<!-- 
+    *
+    * Remove To Show Cookie banner
+    *
 @if (showBanner)
 {
     <nav id="cookieConsent" class="navbar navbar-default navbar-fixed-top" role="alert">
@@ -39,3 +42,5 @@
         })();
     </script>
 }
+
+    -->

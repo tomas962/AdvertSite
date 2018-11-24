@@ -34,11 +34,22 @@
                     <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
                     <li><a asp-area="" asp-controller="Listings" asp-action="Index">Listings</a></li>
+                    <li><a asp-area="" asp-controller="User" asp-action="Register">Register</a></li>
                 </ul>
             </div>
         </div>
     </nav>
-
+    @if (ViewData["Success"] is Boolean)
+    {
+        if ((Boolean)ViewData["Success"])
+        {
+            <ul class="alert-success" style="text-align:center">@ViewData["Message"]</ul>
+        }
+        else
+        {
+            <ul class="alert-danger" style="text-align:center">@ViewData["Message"]</ul>
+        }
+    }
     <partial name="_CookieConsentPartial" />
 
     <div class="container body-content">

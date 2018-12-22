@@ -21,7 +21,7 @@ namespace AdvertSite.Controllers
         // GET: Listings
         public async Task<IActionResult> Index()
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == 1).Include(l => l.Subcategory).Include(l => l.User);
+            var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).Include(l => l.Subcategory).Include(l => l.User);
             return View(await masterContext.ToListAsync());
         }
         // GET: Uncomfirmed
@@ -68,6 +68,9 @@ namespace AdvertSite.Controllers
         {
             if (ModelState.IsValid)
             {
+                listings.Date = DateTime.Now;
+                listings.Display = 1;
+                listings.Verified = 0;
                 _context.Add(listings);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -195,6 +198,22 @@ namespace AdvertSite.Controllers
             // Registracijoje veikia, cia error "Microsoft.AspNetCore.Mvc.ViewFeatures.Internal.TempDataSerializer.EnsureObjectCanBeSerialized(object item)"
             //TempData["Message"] = new MessageViewModel() { CssClassName = "alert-success", Title = "Operacija sėkminga", Message = "Skelbimas dabar matomas kitiems vartotojams" };
             return RedirectToAction(nameof(UncomfirmedListings));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Hide(int id)
+        {
+            var listings = await _context.Listings.FindAsync(id);
+            listings.Display = 0;
+            _context.Listings.Update(listings);
+            await _context.SaveChangesAsync();
+            /*
+             *  Vartotojui turetu issiusti zinute, kad jo skelbimas buvo priimtas.
+             */
+
+            // Registracijoje veikia, cia error "Microsoft.AspNetCore.Mvc.ViewFeatures.Internal.TempDataSerializer.EnsureObjectCanBeSerialized(object item)"
+            //TempData["Message"] = new MessageViewModel() { CssClassName = "alert-success", Title = "Operacija sėkminga", Message = "Skelbimas dabar matomas kitiems vartotojams" };
+            return RedirectToAction(nameof(Index));
         }
 
         private bool ListingsExists(int id)

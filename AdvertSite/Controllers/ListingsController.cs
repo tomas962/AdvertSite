@@ -21,7 +21,13 @@ namespace AdvertSite.Controllers
         // GET: Listings
         public async Task<IActionResult> Index()
         {
-            var masterContext = _context.Listings.Include(l => l.Subcategory).Include(l => l.User);
+            var masterContext = _context.Listings.Where(l => l.Verified == 1).Include(l => l.Subcategory).Include(l => l.User);
+            return View(await masterContext.ToListAsync());
+        }
+        // GET: Uncomfirmed
+        public async Task<IActionResult> UncomfirmedListings()
+        {
+            var masterContext = _context.Listings.Where(l => l.Verified == 0).Include(l => l.Subcategory).Include(l => l.User);
             return View(await masterContext.ToListAsync());
         }
 
@@ -126,6 +132,8 @@ namespace AdvertSite.Controllers
             return View(listings);
         }
 
+
+
         // GET: Listings/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -157,9 +165,43 @@ namespace AdvertSite.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost, ActionName("DenyListing")]
+        public async Task<IActionResult> DenyListing(int id)
+        {
+            var listings = await _context.Listings.FindAsync(id);
+            _context.Listings.Remove(listings);
+            await _context.SaveChangesAsync();
+            /*
+             *  Vartotojui turetu issiusti zinute, kad jo skelbimas buvo atmestas. 
+             */
+
+            // Registracijoje veikia, cia error "Microsoft.AspNetCore.Mvc.ViewFeatures.Internal.TempDataSerializer.EnsureObjectCanBeSerialized(object item)"
+            // TempData["Message"] = new MessageViewModel() { CssClassName = "alert-danger", Title = "Operacija sėkminga", Message = "Skelbimas buvo atmestas" };
+            return RedirectToAction(nameof(UncomfirmedListings));
+
+        }
+
+        [HttpPost, ActionName("ApproveListing")]
+        public async Task<IActionResult> ApproveListing(int id)
+        {
+            var listings = await _context.Listings.FindAsync(id);
+            listings.Verified = 1;
+            _context.Listings.Update(listings);
+            await _context.SaveChangesAsync();
+            /*
+             *  Vartotojui turetu issiusti zinute, kad jo skelbimas buvo priimtas.
+             */
+
+            // Registracijoje veikia, cia error "Microsoft.AspNetCore.Mvc.ViewFeatures.Internal.TempDataSerializer.EnsureObjectCanBeSerialized(object item)"
+            //TempData["Message"] = new MessageViewModel() { CssClassName = "alert-success", Title = "Operacija sėkminga", Message = "Skelbimas dabar matomas kitiems vartotojams" };
+            return RedirectToAction(nameof(UncomfirmedListings));
+        }
+
         private bool ListingsExists(int id)
         {
             return _context.Listings.Any(e => e.Id == id);
         }
+
+
     }
 }

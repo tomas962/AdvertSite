@@ -8,7 +8,7 @@ namespace AdvertSite.Models
         public int Id { get; set; }
         public int Sellerid { get; set; }
         public int Buyerid { get; set; }
-        public DateTime? Date { get; set; }
+        public string Date { get; set; }
         public string Comment { get; set; }
         public short? Evaluation { get; set; }
 

@@ -13,9 +13,9 @@ namespace AdvertSite.Controllers
 {
     public class UserController : Controller
     {
-        private readonly masterContext _context;
+        private readonly advert_siteContext _context;
 
-        public UserController(masterContext context)
+        public UserController(advert_siteContext context)
         {
             _context = context;
         }
@@ -53,7 +53,7 @@ namespace AdvertSite.Controllers
                     Email = model.Email,
                     Password = model.Password,
                     RegistrationDate = DateTime.Now,
-                    Userlevel = 1
+                    Userlevel = true
                 };
                
                 if (_context.Users.Any(i => i.Username == user.Username))

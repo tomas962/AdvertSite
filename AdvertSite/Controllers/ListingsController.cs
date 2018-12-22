@@ -11,9 +11,9 @@ namespace AdvertSite.Controllers
 {
     public class ListingsController : Controller
     {
-        private readonly masterContext _context;
+        private readonly advert_siteContext _context;
 
-        public ListingsController(masterContext context)
+        public ListingsController(advert_siteContext context)
         {
             _context = context;
         }
@@ -21,13 +21,13 @@ namespace AdvertSite.Controllers
         // GET: Listings
         public async Task<IActionResult> Index()
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).Include(l => l.Subcategory).Include(l => l.User);
+            var masterContext = _context.Listings.Where(l => l.Verified == true && l.Display == true).Include(l => l.Subcategory).Include(l => l.User);
             return View(await masterContext.ToListAsync());
         }
         // GET: Uncomfirmed
         public async Task<IActionResult> UncomfirmedListings()
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == 0).Include(l => l.Subcategory).Include(l => l.User);
+            var masterContext = _context.Listings.Where(l => l.Verified == false).Include(l => l.Subcategory).Include(l => l.User);
             return View(await masterContext.ToListAsync());
         }
 
@@ -69,8 +69,8 @@ namespace AdvertSite.Controllers
             if (ModelState.IsValid)
             {
                 listings.Date = DateTime.Now;
-                listings.Display = 1;
-                listings.Verified = 0;
+                listings.Display = true;
+                listings.Verified = false;
                 _context.Add(listings);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -188,7 +188,7 @@ namespace AdvertSite.Controllers
         public async Task<IActionResult> ApproveListing(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
-            listings.Verified = 1;
+            listings.Verified = true;
             _context.Listings.Update(listings);
             await _context.SaveChangesAsync();
             /*
@@ -204,7 +204,7 @@ namespace AdvertSite.Controllers
         public async Task<IActionResult> Hide(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
-            listings.Display = 0;
+            listings.Display = false;
             _context.Listings.Update(listings);
             await _context.SaveChangesAsync();
             /*

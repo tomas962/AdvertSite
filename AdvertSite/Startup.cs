@@ -33,8 +33,8 @@ namespace AdvertSite
 
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.AddDbContext<AdvertSite.Models.masterContext>(options =>
-                    options.UseSqlServer(Configuration.GetConnectionString("masterContext")));
+            services.AddDbContext<AdvertSite.Models.advert_siteContext>(options =>
+                    options.UseMySql(Configuration.GetConnectionString("advert_siteContext")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

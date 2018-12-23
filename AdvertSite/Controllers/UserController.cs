@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using AdvertSite.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Web;
+using Microsoft.AspNetCore.Http;
 
 namespace AdvertSite.Controllers
 {
@@ -23,27 +24,43 @@ namespace AdvertSite.Controllers
         [HttpGet]
         public ActionResult Login()
         {
+            // Jei vartotojas jau prisijunges
+            if (HttpContext.Session.GetInt32("id") != null)
+            {
+                //TempData["Message"] = new MessageViewModel() { CssClassName = "alert-info", Title = "!!!", Message = "Vartotojas jau prisijunges" };
+                return RedirectToAction("Index", "Home");
+            }
+
             Users userModel = new Users();
             return View(userModel);
         }
 
         [HttpGet]
         public ActionResult Register() {
+            // Jei vartotojas jau prisijunges
+            if (HttpContext.Session.GetInt32("id") != null)
+            {
+                //TempData["Message"] = new MessageViewModel() { CssClassName = "alert-info", Title = "!!!", Message = "Vartotojas jau prisijunges" };
+                return RedirectToAction("Index", "Home");
+            }
+
             UserRegisterModel userModel = new UserRegisterModel();
             return View(userModel);
         }
 
 
-        [HttpPost]
-        public async Task<IActionResult> Logout()
+        [HttpGet]
+        public ActionResult Logout()
         {
-          //  await _signManager.SignOutAsync();
+            //  await _signManager.SignOutAsync();
+            HttpContext.Session.Clear();
             return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
         public async Task<IActionResult> Register(UserRegisterModel model)
         {
+
             if (ModelState.IsValid)
             {
                 var user = new Users
@@ -83,26 +100,29 @@ namespace AdvertSite.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(UserLogin login, string ReturnUrl = "")
         {
-            string message = "";
-            var v = _context.Users.Where(i => i.Username == login.Username).FirstOrDefault();
-            if (v != null)
-            {
-                if (string.Compare(login.Password, v.Password) == 0) // reik encryptiono
-                {
-                    int timeout = 5;    // 5min timeout
-          //          var ticket = new FormsAuthenticationTicket(login.UserId, false, timeout);
 
+            var checkUser = _context.Users.Where(i => i.Username == login.Username).FirstOrDefault();
+            if (checkUser != null)
+            {
+                if (string.Compare(login.Password, checkUser.Password) == 0) // reik encryptiono
+                {
+                    HttpContext.Session.SetInt32("id", checkUser.Id);
+                    //HttpContext.Session.SetInt32("ulevel", checkUser.Userlevel);
+                    /*
+                     * Pakeisti userlevel i int vietoj boolean.
+                     */
+
+                    //TempData["Message"] = new MessageViewModel(){ CssClassName = "alert-success", Title = "", Message = $"Prisijungta sėkmingai. Sveikas {v.Username}" };
                 }
                 else
                 {
-                    message = "Neteisingai vartotojo duomenys";
+                    //TempData["Message"] = new MessageViewModel() { CssClassName = "alert-danger", Title = "Klaida!", Message = "Neteisingas vartotojo vardas arba slaptažodis" };
                 }
             }
             else
             {
-                message = "Neteisingai vartotojo duomenys";
+                //TempData["Message"] = new MessageViewModel() { CssClassName = "alert-danger", Title = "Klaida!", Message = "Neteisingas vartotojo vardas arba slaptažodis" };
             }
-            ViewBag.Message = message;
             return View();
         }
 

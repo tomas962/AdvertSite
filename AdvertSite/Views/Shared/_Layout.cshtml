@@ -1,5 +1,5 @@
-﻿@using System.Security
-
+﻿@using System.Security;
+@using Microsoft.AspNetCore.Http;
 <!DOCTYPE html>
 <html>
 <head>
@@ -37,18 +37,26 @@
                     <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
                     <li><a asp-area="" asp-controller="Listings" asp-action="Index">Listings</a></li>
                     <li><a asp-area="" asp-controller="Listings" asp-action="UncomfirmedListings">Skelbimu patvirtinimas</a></li>
-                    <li><a asp-area="" asp-controller="User" asp-action="Register">Register</a></li>
-                    <li><a asp-area="" asp-controller="User" asp-action="Login">Login</a></li>
-                </ul>
+                    @if (Context.Session.GetInt32("id") == null)
+                    {
+                        <li><a asp-area="" asp-controller="User" asp-action="Register">Register</a></li>
+                        <li><a asp-area="" asp-controller="User" asp-action="Login">Login</a></li>
+                    }
+                    @if (Context.Session.GetInt32("id") != null)
+                    {
+                        <li  ><a asp-area="" asp-controller="User" asp-action="Logout">Logout</a></li>
+                    }
+                    </ul>
             </div>
         </div>
     </nav>
-    @if (ViewData["Message"] != null)
+    <div class="alert text-info" style="text-align:center">
+        <strong>Cookies count: @Context.Session.Keys.Count()</strong>
+    </div>
+    @if (Context.Session.GetString("id") != null)
     {
-        var message = (MessageViewModel)ViewData["Message"];
-        <div class="alert @message.CssClassName" style="text-align:center">
-            <strong>@message.Title</strong>
-            @message.Message
+        <div class="alert text-info" style="text-align:center">
+            <strong>@Context.Session.GetInt32("id")</strong>
         </div>
     }
 

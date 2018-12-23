@@ -27,11 +27,11 @@ namespace AdvertSite
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
+                options.CheckConsentNeeded = context => false;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-
+            services.AddSession();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddDbContext<AdvertSite.Models.advert_siteContext>(options =>
                     options.UseMySql(Configuration.GetConnectionString("advert_siteContext")));
@@ -48,7 +48,7 @@ namespace AdvertSite
             {
                 app.UseExceptionHandler("/Home/Error");
             }
-
+            app.UseSession();
             app.UseStaticFiles();
             app.UseCookiePolicy();
 

@@ -1,0 +1,63 @@
+﻿@model Microsoft.AspNetCore.Identity.IdentityUser;
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Listings</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.UserName)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.UserName)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Email)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Email)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.PhoneNumber)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.PhoneNumber)
+        </dd>
+        @*<dt>
+            @Html.DisplayNameFor(model => model.City)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.City)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.RegistrationDate)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.RegistrationDate)
+        </dd>*@
+        @*<dt>
+            @Html.DisplayNameFor(model => model.ReviewsSeller)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.ReviewsSeller.Count)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Listings)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Listings.Count)
+            @foreach(Listings item in Model.Listings)
+            { 
+                <li>@item.Name, @item.Id</li>
+            }
+        </dd>*@
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+</div>

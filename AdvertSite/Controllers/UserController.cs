@@ -21,9 +21,8 @@ namespace AdvertSite.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public ActionResult Login()
         {
-
             Users userModel = new Users();
             return View(userModel);
         }
@@ -72,8 +71,11 @@ namespace AdvertSite.Controllers
                 await _context.SaveChangesAsync();
 
                 // await _signManager.SignInAsync(userModel, false);
-                TempData["Message"] = new MessageViewModel() { CssClassName = "alert-success", Title = "Operacija sėkminga", Message = "Vartotojas užregistruotas" };
+
+                TempData["Message"] = new MessageViewModel(){ CssClassName = "alert-success", Title = "Operacija sėkminga", Message = "Vartotojas užregistruotas" };
+                return RedirectToAction(nameof(Login));
             }
+            // should not get this far
             return View(model);
         }
 
@@ -102,6 +104,27 @@ namespace AdvertSite.Controllers
             }
             ViewBag.Message = message;
             return View();
+        }
+
+
+        // GET: Users/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            var user = await _context.Users
+                .Include(u => u.Listings)
+                .Include(u => u.ReviewsSeller)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return View(user);
         }
     }
 }

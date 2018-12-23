@@ -42,6 +42,7 @@ namespace AdvertSite.Controllers
             var listings = await _context.Listings
                 .Include(l => l.Subcategory)
                 .Include(l => l.User)
+                .Include(l => l.Subcategory.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (listings == null)
             {
@@ -54,7 +55,7 @@ namespace AdvertSite.Controllers
         // GET: Listings/Create
         public IActionResult Create()
         {
-            ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Id");
+            ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Name");
             ViewData["Userid"] = new SelectList(_context.Users, "Id", "Username");
             return View();
         }

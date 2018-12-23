@@ -43,9 +43,9 @@
             </div>
         </div>
     </nav>
-    @if (TempData["Message"] != null)
+    @if (ViewData["Message"] != null)
     {
-        var message = (MessageViewModel)TempData["Message"];
+        var message = (MessageViewModel)ViewData["Message"];
         <div class="alert @message.CssClassName" style="text-align:center">
             <strong>@message.Title</strong>
             @message.Message

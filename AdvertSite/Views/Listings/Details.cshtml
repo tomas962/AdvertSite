@@ -14,7 +14,7 @@
             @Html.DisplayNameFor(model => model.Name)
         </dt>
         <dd>
-            <a asp-area="" asp-controller="User" asp-action="Details" asp-route-id="@Model.User.Id">@Html.DisplayFor(model => model.Name)</a>
+           @Html.DisplayFor(model => model.Name)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Description)
@@ -62,7 +62,7 @@
             @Html.DisplayNameFor(model => model.User)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.User.Email)
+            <a asp-area="" asp-controller="User" asp-action="Details" asp-route-id="@Model.User.Id">@Html.DisplayFor(model => model.User.Email)</a>
         </dd>
     </dl>
 </div>

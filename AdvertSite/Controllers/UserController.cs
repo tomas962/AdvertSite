@@ -128,24 +128,24 @@ namespace AdvertSite.Controllers
         //}
 
 
-        // GET: Users/Details/5
-        //public async Task<IActionResult> Details(string id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var user = await _context.Users
-        //        .Include(u => u.Listings)
-        //        .Include(u => u.ReviewsSeller)
-        //        .FirstOrDefaultAsync(m => m.Id == id);
+        // GET: Users/Details/RandomString
+        public async Task<IActionResult> Details(string id)
+        {
+           if (id == null)
+            {
+                return NotFound();
+            }
+            var user = await _context.Users
+                .Include(u => u.Listings)
+                .Include(u => u.ReviewsSeller)
+                .FirstOrDefaultAsync(m => m.Id == id);
 
-        //    if (user == null)
-        //    {
-        //        return NotFound();
-        //    }
+            if (user == null)
+            {
+                return NotFound();
+            }
 
-        //    return View(user);
-        //}
+            return View(user);
+        }
     }
 }

@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using AdvertSite.Models;
 using AdvertSite.Data;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace AdvertSite.Controllers
 {
@@ -17,19 +19,21 @@ namespace AdvertSite.Controllers
         public ListingsController(advert_siteContext context)
         {
             _context = context;
+            
         }
 
+        
         // GET: Listings
         public async Task<IActionResult> Index()
         {
-            var masterContext = _context.Listings.ToListAsync()/*(l => l.Verified == 1 && l.Display == 1).Include(l => l.Subcategory).Include(l => l.User)*/;
-            return View(await masterContext/*.ToListAsync()*/);
+            var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).ToListAsync()/*(l => l.Verified == 1 && l.Display == 1).Include(l => l.Subcategory).Include(l => l.User)*/;
+            return View(await masterContext);
         }
         // GET: Uncomfirmed
         public async Task<IActionResult> UncomfirmedListings()
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == 1).Include(l => l.Subcategory).Include(l => l.User);
-            return View(await masterContext.ToListAsync());
+            var masterContext = _context.Listings.Where(l => l.Verified == 0).ToListAsync();
+            return View(await masterContext);
         }
 
         // GET: Listings/Details/5
@@ -70,6 +74,8 @@ namespace AdvertSite.Controllers
         {
             if (ModelState.IsValid)
             {
+                listings.Userid = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
                 listings.Date = DateTime.Now;
                 listings.Display = 1;
                 listings.Verified = 0;

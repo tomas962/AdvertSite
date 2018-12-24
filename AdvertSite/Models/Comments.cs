@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace AdvertSite.Models
@@ -8,10 +7,10 @@ namespace AdvertSite.Models
     {
         public int Id { get; set; }
         public string Text { get; set; }
-        public int Userid { get; set; }
+        public string Userid { get; set; }
         public int Listingid { get; set; }
 
         public Listings Listing { get; set; }
-        public IdentityUser User { get; set; }
+        public ApplicationUser User { get; set; }
     }
 }

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace AdvertSite.Models
@@ -14,9 +13,9 @@ namespace AdvertSite.Models
         public int Id { get; set; }
         public string Subject { get; set; }
         public string Text { get; set; }
-        public int SenderId { get; set; }
+        public string SenderId { get; set; }
 
-        public IdentityUser Sender { get; set; }
+        public ApplicationUser Sender { get; set; }
         public ICollection<UsersHasMessages> UsersHasMessages { get; set; }
     }
 }

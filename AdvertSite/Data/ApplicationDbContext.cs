@@ -19,7 +19,7 @@ namespace AdvertSite.Data
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<UsersHasMessages>().HasKey(item => new { item.RecipientId, item.MessagesSenderId, item.MessagesId });
+            //builder.Entity<UsersHasMessages>().HasKey(item => new { item.RecipientId, item.MessagesSenderId, item.MessagesId });
         }
 
         public virtual DbSet<Category> Category { get; set; }
@@ -29,7 +29,7 @@ namespace AdvertSite.Data
         public virtual DbSet<Messages> Messages { get; set; }
         public virtual DbSet<Reviews> Reviews { get; set; }
         public virtual DbSet<Subcategory> Subcategory { get; set; }
-        public virtual DbSet<IdentityUser> Users { get; set; }
+        public virtual DbSet<ApplicationUser> Users { get; set; }
         public virtual DbSet<UsersHasMessages> UsersHasMessages { get; set; }
     }
 }

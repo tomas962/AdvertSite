@@ -15,9 +15,9 @@ namespace AdvertSite.Controllers
 {
     public class UserController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly advert_siteContext _context;
 
-        public UserController(ApplicationDbContext context)
+        public UserController(advert_siteContext context)
         {
             _context = context;
         }

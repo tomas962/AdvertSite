@@ -12,9 +12,9 @@ namespace AdvertSite.Controllers
 {
     public class ListingsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly advert_siteContext _context;
 
-        public ListingsController(ApplicationDbContext context)
+        public ListingsController(advert_siteContext context)
         {
             _context = context;
         }
@@ -22,13 +22,13 @@ namespace AdvertSite.Controllers
         // GET: Listings
         public async Task<IActionResult> Index()
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == true && l.Display == true).Include(l => l.Subcategory).Include(l => l.User);
-            return View(await masterContext.ToListAsync());
+            var masterContext = _context.Listings.ToListAsync()/*(l => l.Verified == 1 && l.Display == 1).Include(l => l.Subcategory).Include(l => l.User)*/;
+            return View(await masterContext/*.ToListAsync()*/);
         }
         // GET: Uncomfirmed
         public async Task<IActionResult> UncomfirmedListings()
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == false).Include(l => l.Subcategory).Include(l => l.User);
+            var masterContext = _context.Listings.Where(l => l.Verified == 1).Include(l => l.Subcategory).Include(l => l.User);
             return View(await masterContext.ToListAsync());
         }
 
@@ -57,7 +57,7 @@ namespace AdvertSite.Controllers
         public IActionResult Create()
         {
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Name");
-            ViewData["Userid"] = new SelectList(_context.Users, "Id", "Username");
+            ViewData["Userid"] = new SelectList(_context.Users, "Id", "UserName");
             return View();
         }
 
@@ -71,14 +71,14 @@ namespace AdvertSite.Controllers
             if (ModelState.IsValid)
             {
                 listings.Date = DateTime.Now;
-                listings.Display = true;
-                listings.Verified = false;
+                listings.Display = 1;
+                listings.Verified = 0;
                 _context.Add(listings);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Id", listings.Subcategoryid);
-            ViewData["Userid"] = new SelectList(_context.Users, "Id", "Username", listings.Userid);
+            ViewData["Userid"] = new SelectList(_context.Users, "Id", "UserName", listings.Userid);
             return View(listings);
         }
 
@@ -96,7 +96,7 @@ namespace AdvertSite.Controllers
                 return NotFound();
             }
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Id", listings.Subcategoryid);
-            ViewData["Userid"] = new SelectList(_context.Users, "Id", "Username", listings.Userid);
+            ViewData["Userid"] = new SelectList(_context.Users, "Id", "UserName", listings.Userid);
             return View(listings);
         }
 
@@ -133,7 +133,7 @@ namespace AdvertSite.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Id", listings.Subcategoryid);
-            ViewData["Userid"] = new SelectList(_context.Users, "Id", "Username", listings.Userid);
+            ViewData["Userid"] = new SelectList(_context.Users, "Id", "UserName", listings.Userid);
             return View(listings);
         }
 
@@ -190,7 +190,7 @@ namespace AdvertSite.Controllers
         public async Task<IActionResult> ApproveListing(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
-            listings.Verified = true;
+            listings.Verified = 1;
             _context.Listings.Update(listings);
             await _context.SaveChangesAsync();
             /*
@@ -206,7 +206,7 @@ namespace AdvertSite.Controllers
         public async Task<IActionResult> Hide(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
-            listings.Display = false;
+            listings.Display = 0;
             _context.Listings.Update(listings);
             await _context.SaveChangesAsync();
             /*

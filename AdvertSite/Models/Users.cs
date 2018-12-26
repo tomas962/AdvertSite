@@ -16,8 +16,10 @@ namespace AdvertSite.Models
             UsersHasMessages = new HashSet<UsersHasMessages>();
         }
 
+        [PersonalData]
         public string HomeAdress { get; set; }
         public string UserLevel { get; set; }
+        [PersonalData]
         public string City { get; set; }
         public DateTime RegistrationDate { get; set; }
 

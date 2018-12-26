@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using AdvertSite.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AdvertSite.Controllers
 {
@@ -29,6 +30,7 @@ namespace AdvertSite.Controllers
             return View(await masterContext);
         }
         // GET: Uncomfirmed
+        [Authorize]
         public async Task<IActionResult> UncomfirmedListings()
         {
             var masterContext = _context.Listings.Where(l => l.Verified == 0).ToListAsync();

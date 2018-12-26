@@ -9,7 +9,6 @@ using AdvertSite.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Web;
 using Microsoft.AspNetCore.Http;
-using AdvertSite.Data;
 
 namespace AdvertSite.Controllers
 {

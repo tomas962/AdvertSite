@@ -1,4 +1,6 @@
 ﻿@model AdvertSite.Models.Listings
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "Details";
@@ -14,7 +16,7 @@
             @Html.DisplayNameFor(model => model.Name)
         </dt>
         <dd>
-           @Html.DisplayFor(model => model.Name)
+            @Html.DisplayFor(model => model.Name)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Description)
@@ -64,9 +66,40 @@
         <dd>
             <a asp-area="" asp-controller="User" asp-action="Details" asp-route-id="@Model.User.Id">@Html.DisplayFor(model => model.User.Email)</a>
         </dd>
+        <dt>
+            Komentaru kiekis
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Comments.Count)
+        </dd>
     </dl>
 </div>
 <div>
+    <h4>Komentarai</h4>
+    <dl class="dl-horizontal">
+
+        @foreach (var comment in Model.Comments)
+        {
+            <dt>
+                @comment.Userid
+
+            </dt>
+            <dd>
+                @comment.Text
+                @*
+                    Jeigu vartotojas, kuris parase sita komentara arba administratorius
+                *@
+                @if (User.IsInRole("Admin") || comment.Userid.Equals(UserManager.GetUserId(User)))
+                {
+                   <a asp-action="Delete" asp-controller="Comment" asp-route-id="@comment.Id">Šalinti</a>
+                }
+            </dd>
+        }
+
+    </dl>
+</div>
+<div>
+    <a asp-controller="Comment" asp-action="Create" asp-route-id="@Model.Id">Rašyti komentarą</a> |
     <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>

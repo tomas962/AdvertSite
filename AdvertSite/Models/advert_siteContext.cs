@@ -69,7 +69,7 @@ namespace AdvertSite.Models
 
             modelBuilder.Entity<Comments>(entity =>
             {
-                entity.HasKey(e => new { e.Id, e.Userid });
+                entity.HasKey(e => new { e.Id });
 
                 entity.Property(e => e.Id)
                     .HasColumnName("id")

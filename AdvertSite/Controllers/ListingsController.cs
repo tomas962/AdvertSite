@@ -24,13 +24,14 @@ namespace AdvertSite.Controllers
 
         
         // GET: Listings
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).ToListAsync()/*(l => l.Verified == 1 && l.Display == 1).Include(l => l.Subcategory).Include(l => l.User)*/;
             return View(await masterContext);
         }
         // GET: Uncomfirmed
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UncomfirmedListings()
         {
             var masterContext = _context.Listings.Where(l => l.Verified == 0).ToListAsync();
@@ -38,6 +39,7 @@ namespace AdvertSite.Controllers
         }
 
         // GET: Listings/Details/5
+        [AllowAnonymous]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -59,6 +61,7 @@ namespace AdvertSite.Controllers
         }
 
         // GET: Listings/Create
+        [Authorize(Roles ="Admin,User")]
         public IActionResult Create()
         {
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Name");
@@ -71,6 +74,7 @@ namespace AdvertSite.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles ="Admin,User")]
         public async Task<IActionResult> Create([Bind("Id,Userid,Subcategoryid,Name,Description,Price,Quantity,Date,Verified,Display")] Listings listings)
         {
             if (ModelState.IsValid)
@@ -90,6 +94,7 @@ namespace AdvertSite.Controllers
         }
 
         // GET: Listings/Edit/5
+        [Authorize(Roles ="Admin,User")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -112,6 +117,7 @@ namespace AdvertSite.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles ="Admin,User")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Userid,Subcategoryid,Name,Description,Price,Quantity,Date,Verified,Display")] Listings listings)
         {
             if (id != listings.Id)
@@ -147,6 +153,7 @@ namespace AdvertSite.Controllers
 
 
         // GET: Listings/Delete/5
+        [Authorize(Roles ="Admin,User")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -169,6 +176,7 @@ namespace AdvertSite.Controllers
         // POST: Listings/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles ="Admin,User")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
@@ -178,6 +186,7 @@ namespace AdvertSite.Controllers
         }
 
         [HttpPost, ActionName("DenyListing")]
+        [Authorize(Roles ="Admin")]
         public async Task<IActionResult> DenyListing(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
@@ -194,6 +203,7 @@ namespace AdvertSite.Controllers
         }
 
         [HttpPost, ActionName("ApproveListing")]
+        [Authorize(Roles ="Admin")]
         public async Task<IActionResult> ApproveListing(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
@@ -210,6 +220,7 @@ namespace AdvertSite.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles ="Admin")]
         public async Task<IActionResult> Hide(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
@@ -230,6 +241,6 @@ namespace AdvertSite.Controllers
             return _context.Listings.Any(e => e.Id == id);
         }
 
-
+        
     }
 }

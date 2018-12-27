@@ -1,4 +1,6 @@
 ﻿@model IEnumerable<AdvertSite.Models.Listings>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
 @{
     ViewData["Title"] = "Index";
 }
@@ -8,77 +10,45 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-
-@*<div class="list-group">
-    @foreach (var item in Model)
-    {
-
-        <a asp-action="Details" asp-route-id="@item.Id" class="row list-group-item list-group-item-action flex-column align-items-start">
-
-            <div class="col-lg-1 d-flex w-100 justify-content-between" style="width:25%;">
-                <h5 class="mb-1"><b>@Html.DisplayFor(modelItem => item.Name)</b></h5>
-                <small class="text-muted">Patalpinta: @Html.DisplayFor(modelItem => item.Date)</small>
-                <br />
-                <small class="text-muted">Kaina: @Html.DisplayFor(modelItem => item.Price) Eur</small>
-            </div>
-
-            <div class="col-lg-1" style="width:20%;">
-                <img src="http://webpub.jacieyang.com/resource/p2t/horizontal/ex.gif" alt="Temp" height="135" width="180">
-            </div>
-
-            <div class="col-lg-1" style="width:45%;">
-                @if (@item.Description.ToString().Length > 120)
-                {
-                    <p style="overflow:hidden; word-wrap: break-word;">@item.Description.ToString().Substring(0, 120)...</p>
-                }
-                else
-                {
-                    <p style="overflow:hidden; word-wrap: break-word;">@Html.DisplayFor(modelItem => item.Description)</p>
-                }
-                <small class="text-muted" style="vertical-align:bottom">@Html.DisplayFor(modelItem => item.User.City)</small>
-            </div>
-            <div class="col-lg-1" style="width:10%">
-                Vieta, kuria matis admin ir user redagavimui, salinimui, patvirtinimui ir pan.
-            </div>
-        </a>
-
-        <br />
-    }
-</div>
-
-<br />*@
-
 <div class="list-group">
     @foreach (var item in Model)
     {
-        <div class="col-lg-12 d-flex w-100 justify-content-between">
-            <div class="col-lg-10">
-                <a asp-action="Details" asp-route-id="@item.Id" class="row list-group-item list-group-item-action flex-column align-items-start">
-                    <div class="col-lg-1" style="width:25%;">
-                        <h5 class="mb-1 text-info"><b>@Html.DisplayFor(modelItem => item.Name)</b></h5>
-                        <small class="text-muted">Patalpinta: @Html.DisplayFor(modelItem => item.Date)</small>
-                        <br />
-                        <small class="text-muted">Kaina: @Html.DisplayFor(modelItem => item.Price) Eur</small>
-                    </div>
+    int colSize = (User.IsInRole("Admin") || item.Userid.Equals(UserManager.GetUserId(User))) ? 10 : 12;
 
-                    <div class="col-lg-1" style="width:25%;">
-                        <img src="http://webpub.jacieyang.com/resource/p2t/horizontal/ex.gif" alt="Temp" height="135" width="180">
-                    </div>
+    <div class="col-lg-12 d-flex w-100 justify-content-between">
+        <div class="col-lg-@colSize">
+            <a asp-action="Details" asp-route-id="@item.Id" class="row list-group-item list-group-item-action flex-column align-items-start">
+                <div class="col-lg-1" style="width:25%;">
+                    <h5 class="mb-1 text-info"><b>@Html.DisplayFor(modelItem => item.Name)</b></h5>
+                    <small class="text-muted">Patalpinta: @Html.DisplayFor(modelItem => item.Date)</small>
+                    <br />
+                    <small class="text-muted">Kaina: @Html.DisplayFor(modelItem => item.Price) Eur</small>
+                </div>
 
-                    <div class="col-lg-1" style="width:50%;">
-                        @if (@item.Description.ToString().Length > 120)
-                        {
-                            <p style="overflow:hidden; word-wrap: break-word;">@item.Description.ToString().Substring(0, 120)...</p>
-                        }
-                        else
-                        {
-                            <p style="overflow:hidden; word-wrap: break-word;">@Html.DisplayFor(modelItem => item.Description)</p>
-                        }
-                        @*<small class="text-muted" style="vertical-align:bottom">@Html.DisplayFor(modelItem => item.User.City)</small>*@
-                    </div>
-                </a>
-                <br />
-            </div>
+                <div class="col-lg-1" style="width:25%;">
+                    <img src="http://webpub.jacieyang.com/resource/p2t/horizontal/ex.gif" alt="Temp" height="135" width="180">
+                </div>
+
+                <div class="col-lg-1" style="width:50%;">
+                    @if (@item.Description.ToString().Length > 120)
+                    {
+                        <p style="overflow:hidden; word-wrap: break-word;">@item.Description.ToString().Substring(0, 120)...</p>
+                    }
+                    else
+                    {
+                        <p style="overflow:hidden; word-wrap: break-word;">@Html.DisplayFor(modelItem => item.Description)</p>
+                    }
+                    @*<small class="text-muted" style="vertical-align:bottom">@Html.DisplayFor(modelItem => item.User.City)</small>*@
+                </div>
+            </a>
+            <br />
+        </div>
+        @*
+        Jeigu vartotojas, kuris parase sita komentara arba administratorius
+        *@
+
+        @if (User.IsInRole("Admin") || item.Userid.Equals(UserManager.GetUserId(User)))
+        {
             <div class="col-lg-2">
                 <form method="GET" asp-controller="Listings" asp-action="Edit" asp-route-id="@item.Id">
                     <button class="btn btn-primary" type="submit" style="width: 100%">
@@ -101,6 +71,7 @@
                     </button>
                 </form>
             </div>
-        </div>
+        }
+    </div>
     }
 </div>

@@ -27,7 +27,7 @@ namespace AdvertSite.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).ToListAsync()/*(l => l.Verified == 1 && l.Display == 1).Include(l => l.Subcategory).Include(l => l.User)*/;
+            var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).ToListAsync();/*(l => l.Verified == 1 && l.Display == 1).Include(l => l.Subcategory).Include(l => l.User)*/;
             return View(await masterContext);
         }
         // GET: Uncomfirmed
@@ -104,10 +104,17 @@ namespace AdvertSite.Controllers
             }
 
             var listings = await _context.Listings.FindAsync(id);
+
             if (listings == null)
             {
                 return NotFound();
             }
+
+            if (!listings.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)) && !this.User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Id", listings.Subcategoryid);
             ViewData["Userid"] = new SelectList(_context.Users, "Id", "UserName", listings.Userid);
             return View(listings);
@@ -121,6 +128,11 @@ namespace AdvertSite.Controllers
         [Authorize(Roles ="Admin,User")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Userid,Subcategoryid,Name,Description,Price,Quantity,Date,Verified,Display")] Listings listings)
         {
+            if (!listings.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)) && !this.User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
             if (id != listings.Id)
             {
                 return NotFound();
@@ -130,6 +142,7 @@ namespace AdvertSite.Controllers
             {
                 try
                 {
+                    listings.Verified = 0;
                     _context.Update(listings);
                     await _context.SaveChangesAsync();
                 }
@@ -183,6 +196,7 @@ namespace AdvertSite.Controllers
             var listings = await _context.Listings.FindAsync(id);
             _context.Listings.Remove(listings);
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 

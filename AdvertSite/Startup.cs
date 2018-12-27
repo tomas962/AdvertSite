@@ -74,6 +74,13 @@ namespace AdvertSite
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
+            /*
+            app.UseStatusCodePages(async context =>{
+                if (context.HttpContext.Response.StatusCode == 403)
+                    
+            })
+
+            */
             CreateRoles(app.ApplicationServices).Wait();
 
         }

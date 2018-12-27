@@ -35,8 +35,8 @@
                     <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
-                    <li><a asp-area="" asp-controller="Listings" asp-action="Index">Listings</a></li>
-                    <li><a asp-area="" asp-controller="Listings" asp-action="UncomfirmedListings">Skelbimu patvirtinimas</a></li>
+                    <li><a asp-area="" asp-controller="Listings" asp-action="Index">Skelbimai</a></li>
+                    <partial name="_AdminPartial" />
                 </ul>
                 <partial name="_LoginPartial" />
             </div>
@@ -45,8 +45,20 @@
 
     @*
         <partial name="_CookieConsentPartial" />
-    *@
 
+    *@
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <p align="center"><strong>Klaida:</strong> @TempData["Error"].ToString()</p>
+        </div>
+    }
+    @if (ViewData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            <p align="center"><strong>Operacija sėkminga:</strong> @ViewData["Success"].ToString()</p>
+        </div>
+    }
     <div class="container body-content">
         @RenderBody()
         <hr />

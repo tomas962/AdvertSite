@@ -1,0 +1,15 @@
+﻿@using Microsoft.AspNetCore.Identity
+
+@inject UserManager<ApplicationUser> UserManager
+@*
+    User navigacijos juosta
+*@
+@if (User.Identity.IsAuthenticated)
+{
+
+
+<li>
+    <a asp-controller="Messages" asp-action="Index">Pranešimai</a>
+</li>
+
+}

@@ -1,0 +1,38 @@
+﻿@model IEnumerable<AdvertSite.Models.UsersHasMessages>
+
+@{
+    ViewData["Title"] = "Gautos žinutės";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Gautos žinutės</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Siuntėjas
+            </th>
+            <th>
+                Tema
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Messages.Sender.UserName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Messages.Subject)
+            </td>
+            <td>
+                @Html.ActionLink("Plačiau", "Details", new { id=item.MessagesId })
+                @*@Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })*@
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

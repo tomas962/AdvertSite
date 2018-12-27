@@ -17,7 +17,7 @@ namespace AdvertSite.Controllers
         public CommentController(advert_siteContext context)
         {
             _context = context;
-
+            
         }
 
         // GET: Comment

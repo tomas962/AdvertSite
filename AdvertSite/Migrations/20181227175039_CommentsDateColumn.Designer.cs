@@ -4,14 +4,16 @@ using AdvertSite.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AdvertSite.Migrations
 {
     [DbContext(typeof(advert_siteContext))]
-    partial class advert_siteContextModelSnapshot : ModelSnapshot
+    [Migration("20181227175039_CommentsDateColumn")]
+    partial class CommentsDateColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

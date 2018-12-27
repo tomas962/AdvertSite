@@ -62,7 +62,8 @@ namespace AdvertSite.Controllers
                 {
                     Listingid = id,
                     Userid = this.User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    Text = comment.Text
+                    Text = comment.Text,
+                    Date = DateTime.Now
                 };
                 _context.Add(comments);
                 await _context.SaveChangesAsync();

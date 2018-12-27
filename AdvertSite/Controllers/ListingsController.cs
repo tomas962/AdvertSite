@@ -52,6 +52,7 @@ namespace AdvertSite.Controllers
                 .Include(l => l.User)
                 .Include(l => l.Subcategory.Category)
                 .Include(l => l.Comments)
+                .ThenInclude((Comments c) => c.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (listings == null)
             {

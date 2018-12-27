@@ -81,17 +81,21 @@
         @foreach (var comment in Model.Comments)
         {
             <dt>
-                @comment.Userid
+                @comment.User.UserName
+
+            </dt>
+            <dt>
+                @comment.Date
 
             </dt>
             <dd>
                 @comment.Text
                 @*
-                    Jeigu vartotojas, kuris parase sita komentara arba administratorius
+                Jeigu vartotojas, kuris parase sita komentara arba administratorius
                 *@
                 @if (User.IsInRole("Admin") || comment.Userid.Equals(UserManager.GetUserId(User)))
                 {
-                   <a asp-action="Delete" asp-controller="Comment" asp-route-id="@comment.Id">Šalinti</a>
+                    <a asp-action="Delete" asp-controller="Comment" asp-route-id="@comment.Id">Šalinti</a>
                 }
             </dd>
         }

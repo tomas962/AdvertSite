@@ -51,9 +51,8 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Messages.Subject)
-                    @*
-                        Html.ActionLink("Plačiau", "Details", new { id = item.MessagesId })
-                    *@
+                    @Html.ActionLink("Plačiau", "Details", new { id = item.MessagesId , option = "Outbox"})
+                    
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Messages.Text)

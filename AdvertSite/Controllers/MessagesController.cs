@@ -42,7 +42,8 @@ namespace AdvertSite.Controllers
                _context.UsersHasMessages
                    .Where(m =>  m.RecipientId == _userManager.GetUserId(User) && m.Messages.IsDeleted == 0 )
                    .Include(m => m.Messages)
-                   .ThenInclude(m => m.Sender);
+                   .ThenInclude(m => m.UsersHasMessages)
+                   .ThenInclude(userMessages => userMessages.Sender);
 
             return View(await advert_siteContext.ToListAsync());
         }
@@ -54,10 +55,11 @@ namespace AdvertSite.Controllers
         {
             var advert_siteContext =
                _context.UsersHasMessages
-                   .Where(m => m.MessagesSenderId == _userManager.GetUserId(User) && m.Messages.IsDeleted == 0)
+                   .Where(m => m.SenderId == _userManager.GetUserId(User) && m.Messages.IsDeleted == 0)
                    .Include(m => m.Recipient)
                    .Include(m => m.Messages)
-                   .ThenInclude(m => m.Sender);
+                   .ThenInclude(m => m.UsersHasMessages)
+                   .ThenInclude(userMessages => userMessages.Recipient);
 
 
             return View(await advert_siteContext.ToListAsync());
@@ -73,7 +75,10 @@ namespace AdvertSite.Controllers
             }
 
             var messages = await _context.Messages
-                .Include(m => m.Sender)
+                .Include(m => m.UsersHasMessages)
+                .ThenInclude(m => m.Sender)
+                .Include(m => m.UsersHasMessages)
+                .ThenInclude(m => m.Recipient)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (messages == null)
             {
@@ -107,9 +112,11 @@ namespace AdvertSite.Controllers
         {
 
             var sender = _context.Users.FirstOrDefaultAsync(user => user.Id == _userManager.GetUserId(User));
-            model.Message.Sender = await sender;
+            model.UsersHasMessages =new UsersHasMessages { Sender = await sender };
+            //model.Message = await sender;
 
-            model.Message.SenderId = model.Message.Sender.Id;
+            //model.Message.SenderId = model.Message.Sender.Id;
+
             model.Message.IsDeleted = 0;
             model.Message.AlreadyRead = 0;
             model.Message.DateSent = DateTime.Now;
@@ -117,7 +124,13 @@ namespace AdvertSite.Controllers
             {
                 _context.Add(model.Message);
                 await _context.SaveChangesAsync();
-                _context.Add(new UsersHasMessages { MessagesId = model.Message.Id.Value, RecipientId = model.RecipientId, MessagesSenderId = model.Message.SenderId});
+
+                //Data for UsersHasMessages table
+                model.UsersHasMessages.Messages = model.Message;
+                model.UsersHasMessages.MessagesId = model.Message.Id;
+                model.UsersHasMessages.RecipientId = model.RecipientId;
+
+                _context.Add(model.UsersHasMessages);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }

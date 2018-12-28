@@ -162,13 +162,12 @@ namespace AdvertSite.Models
 
             modelBuilder.Entity<Messages>(entity =>
             {
-                entity.HasKey(e => new { e.Id, e.SenderId });
+                entity.HasKey(e => new { e.Id });
 
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .ValueGeneratedOnAdd();
 
-                entity.Property(e => e.SenderId).HasColumnName("sender_id");
 
                 entity.Property(e => e.Subject)
                     .HasColumnName("subject")
@@ -186,11 +185,6 @@ namespace AdvertSite.Models
                 .HasColumnName("dateSent")
                 .HasColumnType("datetime2(0)");
 
-                entity.HasOne(d => d.Sender)
-                    .WithMany(p => p.Messages)
-                    .HasForeignKey(d => d.SenderId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_Messages_Users1");
             });
 
             modelBuilder.Entity<Reviews>(entity =>
@@ -250,7 +244,7 @@ namespace AdvertSite.Models
 
             modelBuilder.Entity<UsersHasMessages>(entity =>
             {
-                entity.HasKey(e => new { e.RecipientId, e.MessagesId, e.MessagesSenderId });
+                entity.HasKey(e => new { e.RecipientId, e.MessagesId, e.SenderId });
 
                 entity.ToTable("Users_has_Messages");
 
@@ -258,19 +252,25 @@ namespace AdvertSite.Models
 
                 entity.Property(e => e.MessagesId).HasColumnName("Messages_id");
 
-                entity.Property(e => e.MessagesSenderId).HasColumnName("Messages_sender_id");
+                entity.Property(e => e.SenderId).HasColumnName("Messages_sender_id");
 
                 entity.HasOne(d => d.Recipient)
-                    .WithMany(p => p.UsersHasMessages)
+                    .WithMany(p => p.ReceivedMessages)
                     .HasForeignKey(d => d.RecipientId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_Users_has_Messages_Users1");
 
                 entity.HasOne(d => d.Messages)
                     .WithMany(p => p.UsersHasMessages)
-                    .HasForeignKey(d => new { d.MessagesId, d.MessagesSenderId })
+                    .HasForeignKey(d => new { d.MessagesId })
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_Users_has_Messages_Messages1");
+
+                entity.HasOne(d => d.Sender)
+                    .WithMany(p => p.SentMessages)
+                    .HasForeignKey(d => d.SenderId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_Users_has_Messages_Users2");
             });
         }
 

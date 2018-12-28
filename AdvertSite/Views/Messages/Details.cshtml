@@ -22,12 +22,26 @@
         <dd>
             @Html.DisplayFor(model => model.Text)
         </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Sender)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Sender.UserName)
-        </dd>
+        @if (Context.Request.Query["option"] == "Inbox")
+        {
+            <dt>
+                @*@Html.DisplayNameFor(model => model.UsersHasMessages.FirstOrDefault().Sender.UserName)*@
+                Siuntėjas
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.UsersHasMessages.FirstOrDefault().Sender.UserName)
+            </dd>
+        }
+        else if (Context.Request.Query["option"] == "Outbox")
+        {
+            <dt>
+                @*@Html.DisplayNameFor(model => model.UsersHasMessages.FirstOrDefault().Sender.UserName)*@
+                Gavėjas
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.UsersHasMessages.FirstOrDefault().Recipient.UserName)
+            </dd>
+        }
     </dl>
 </div>
 <div>

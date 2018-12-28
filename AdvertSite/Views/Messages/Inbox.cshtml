@@ -50,16 +50,16 @@
                     }
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Messages.Sender.UserName)
+                    @Html.DisplayFor(modelItem => item.Messages.UsersHasMessages.FirstOrDefault().Sender.UserName)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Messages.DateSent)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Messages.Subject)
-                    @*
-                        Html.ActionLink("Plačiau", "Details", new { id = item.MessagesId })
-                    *@
+                    
+                    @Html.ActionLink("Plačiau", "Details", new { id = item.MessagesId , option = "Inbox"})
+                    
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Messages.Text)

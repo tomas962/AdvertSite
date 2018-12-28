@@ -25,16 +25,16 @@
             @Html.DisplayFor(model => model.Text)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Sender)
+            @*@Html.DisplayNameFor(model => model.Sender)*@
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Sender.Id)
+            @*@Html.DisplayFor(model => model.Sender.Id)*@
         </dd>
     </dl>
     
     <form asp-action="Delete">
         <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="SenderId" />
+        @*<input type="hidden" asp-for="SenderId" />*@
         <input type="submit" value="Delete" class="btn btn-default" /> |
         <a asp-action="Index">Back to List</a>
     </form>

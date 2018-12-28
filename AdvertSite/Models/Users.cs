@@ -10,10 +10,10 @@ namespace AdvertSite.Models
         {
             Comments = new HashSet<Comments>();
             Listings = new HashSet<Listings>();
-            Messages = new HashSet<Messages>();
             ReviewsBuyer = new HashSet<Reviews>();
             ReviewsSeller = new HashSet<Reviews>();
-            UsersHasMessages = new HashSet<UsersHasMessages>();
+            ReceivedMessages = new HashSet<UsersHasMessages>();
+            SentMessages = new HashSet<UsersHasMessages>();
         }
 
         [PersonalData]
@@ -25,9 +25,9 @@ namespace AdvertSite.Models
 
         public ICollection<Comments> Comments { get; set; }
         public ICollection<Listings> Listings { get; set; }
-        public ICollection<Messages> Messages { get; set; }
         public ICollection<Reviews> ReviewsBuyer { get; set; }
         public ICollection<Reviews> ReviewsSeller { get; set; }
-        public ICollection<UsersHasMessages> UsersHasMessages { get; set; }
+        public ICollection<UsersHasMessages> ReceivedMessages { get; set; }
+        public ICollection<UsersHasMessages> SentMessages { get; set; }
     }
 }

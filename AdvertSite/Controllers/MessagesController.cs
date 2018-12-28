@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using AdvertSite.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace AdvertSite.Controllers
 {
@@ -26,17 +27,44 @@ namespace AdvertSite.Controllers
 
         // GET: Messages
         [HttpGet]
-        public async Task<IActionResult> Index()
+        [Authorize(Roles = "Admin,User")]
+        public IActionResult Index()
         {
-            var advert_siteContext = 
-                _context.UsersHasMessages
-                .Where(m => m.RecipientId == _userManager.GetUserId(User) && m.Messages.IsDeleted == 0)
-                .Include(m => m.Messages)
-                .ThenInclude(m => m.Sender);
+            return RedirectToAction(nameof(Inbox));
+        }
+
+        // GET: Messages/Inbox
+        [Authorize(Roles = "Admin,User")]
+        [HttpGet]
+        public async Task<IActionResult> Inbox()
+        {
+            var advert_siteContext =
+               _context.UsersHasMessages
+                   .Where(m =>  m.RecipientId == _userManager.GetUserId(User) && m.Messages.IsDeleted == 0 )
+                   .Include(m => m.Messages)
+                   .ThenInclude(m => m.Sender);
+
+            return View(await advert_siteContext.ToListAsync());
+        }
+
+        // GET: MEssages/OutBox
+        [Authorize(Roles = "Admin,User")]
+        [HttpGet]
+        public async Task<IActionResult> Outbox()
+        {
+            var advert_siteContext =
+               _context.UsersHasMessages
+                   .Where(m => m.MessagesSenderId == _userManager.GetUserId(User) && m.Messages.IsDeleted == 0)
+                   .Include(m => m.Recipient)
+                   .Include(m => m.Messages)
+                   .ThenInclude(m => m.Sender);
+
+
             return View(await advert_siteContext.ToListAsync());
         }
 
         // GET: Messages/Details/5
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -56,8 +84,14 @@ namespace AdvertSite.Controllers
         }
 
         // GET: Messages/Create
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Create()
         {
+            // Jeigu vartotojas bando rasyti zinute sau
+            if (Request.Query["recipientId"].Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)))
+                return RedirectToAction("Index", "Home");
+
+
             var recipient = await _context.Users.FirstOrDefaultAsync(user => user.Id == Request.Query["recipientId"]);
             var model = new CreateMessageModel { RecipientId = Request.Query["recipientId"], Recipient = recipient};
             return View(model);
@@ -68,6 +102,7 @@ namespace AdvertSite.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Create([Bind("Message,RecipientId")] CreateMessageModel model)
         {
 
@@ -92,6 +127,7 @@ namespace AdvertSite.Controllers
         // POST: Messages/MarkAsRead
         [HttpPost, ActionName("MarkAsRead")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> MarkAsRead(int id)
         {
             var messages = await _context.Messages.FindAsync(id);
@@ -105,6 +141,7 @@ namespace AdvertSite.Controllers
         // POST: Messages/Delete
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Delete(int id)
         {
             var messages = await _context.Messages.FindAsync(id);

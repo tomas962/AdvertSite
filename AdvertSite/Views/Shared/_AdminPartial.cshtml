@@ -1,0 +1,21 @@
+﻿@using Microsoft.AspNetCore.Identity
+
+@inject UserManager<ApplicationUser> UserManager
+
+
+@*
+        Administratoriaus navigacijos juosta
+*@
+
+@if (User.IsInRole("Admin"))
+{
+    <ul class="nav navbar-nav">
+        <li>
+            <a asp-area="" asp-controller="Listings" asp-action="UncomfirmedListings">Skelbimu patvirtinimas</a>
+        </li>
+    </ul>
+}
+else
+{
+
+}

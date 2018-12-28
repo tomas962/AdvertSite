@@ -1,0 +1,15 @@
+﻿@model AdvertSite.Models.Comments
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h2>Delete</h2>
+
+<h3>Ar tikrai nori pašalinti komentarą?</h3>
+
+<form asp-action="Delete">
+    <input type="submit" value="Šalinti" class="btn btn-danger" />
+</form>
+
+<input action="action" onclick="window.history.go(-1); return false;" type="button" value="Atgal" class="btn btn-info" />

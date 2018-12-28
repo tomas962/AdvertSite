@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using System.Security;
+@using Microsoft.AspNetCore.Http;
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -26,20 +28,38 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">advert_site</a>
+                <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">AdvertSite</a>
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
+                    <li><a asp-area="" asp-controller="Listings" asp-action="Index">Skelbimai</a></li>
+                    <partial name="_AdminPartial" />
+                    <partial name="_UserPartial" />
                 </ul>
+                <partial name="_LoginPartial" />
             </div>
         </div>
     </nav>
 
-    <partial name="_CookieConsentPartial" />
+    @*
+        <partial name="_CookieConsentPartial" />
 
+    *@
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <p align="center"><strong>Klaida:</strong> @TempData["Error"].ToString()</p>
+        </div>
+    }
+    @if (ViewData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            <p align="center"><strong>Operacija sėkminga:</strong> @ViewData["Success"].ToString()</p>
+        </div>
+    }
     <div class="container body-content">
         @RenderBody()
         <hr />

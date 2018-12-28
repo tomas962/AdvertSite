@@ -10,12 +10,11 @@ using Microsoft.Extensions.Logging;
 
 namespace AdvertSite
 {
-    //test
     public class Program
     {
         public static void Main(string[] args)
         {
-            CreateWebHostBuilder(args).Build().Run();
+             CreateWebHostBuilder(args).Build().Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>

@@ -1,0 +1,31 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using AdvertSite.Controllers
+@using AdvertSite.Models
+
+@inject UserManager<ApplicationUser> UserManager
+<!--
+    <script>
+        $.ajax({
+            url: '@Url.Action("UpdateUnreadMessageCount", "Messages")'
+        });
+    </script>
+-->
+@*
+    User navigacijos juosta
+*@
+@if (User.Identity.IsAuthenticated)
+{
+    <li>
+        <a asp-controller="Messages" asp-action="Index">
+            Pranešimai
+            <span class="badge badge-light">
+                @*
+            @ViewBag.UnreadCount
+                *@
+                0
+            </span>
+        </a>
+    </li>
+
+
+}

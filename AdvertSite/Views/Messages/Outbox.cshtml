@@ -1,0 +1,67 @@
+﻿@model IEnumerable<AdvertSite.Models.UsersHasMessages>
+
+@{
+    ViewData["Title"] = "Gautos žinutės";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Gautos žinutės</h2>
+
+<a asp-action="Inbox">Inbox</a>
+<a asp-action="Outbox">Outbox</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th style="width: 4%">
+
+            </th>
+            <th style="width: 15%">
+                Gavėjas
+            </th>
+            <th style="width: 20%">
+                Data
+            </th>
+            <th style="width: 10%">
+                Tema
+            </th>
+            <th style="width: 45%">
+                Žinutė
+            </th>
+            <th style="width: 6%">
+                Susisiekti
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @if (item.Messages.AlreadyRead == 0)
+                    {
+                        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="Vartotojas dar neperskaitė žinutės"></span>
+                    }
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Recipient.UserName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Messages.DateSent)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Messages.Subject)
+                    @Html.ActionLink("Plačiau", "Details", new { id = item.MessagesId , option = "Outbox"})
+                    
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Messages.Text)
+                </td>
+                <td>
+                    <a title="Parašyti vartotojui" asp-area="" asp-controller="Messages" asp-action="Create" asp-route-recipientID="@item.RecipientId">Susisiekti</a>
+
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

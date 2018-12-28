@@ -30,7 +30,7 @@ namespace AdvertSite.Controllers
         {
             var advert_siteContext = 
                 _context.UsersHasMessages
-                .Where(m => m.RecipientId == _userManager.GetUserId(User))
+                .Where(m => m.RecipientId == _userManager.GetUserId(User) && m.Messages.IsDeleted == 0)
                 .Include(m => m.Messages)
                 .ThenInclude(m => m.Sender);
             return View(await advert_siteContext.ToListAsync());
@@ -75,6 +75,9 @@ namespace AdvertSite.Controllers
             model.Message.Sender = await sender;
 
             model.Message.SenderId = model.Message.Sender.Id;
+            model.Message.IsDeleted = 0;
+            model.Message.AlreadyRead = 0;
+            model.Message.DateSent = DateTime.Now;
             if (ModelState.IsValid)
             {
                 _context.Add(model.Message);
@@ -86,6 +89,42 @@ namespace AdvertSite.Controllers
             return View(model);
         }
 
+        // POST: Messages/MarkAsRead
+        [HttpPost, ActionName("MarkAsRead")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkAsRead(int id)
+        {
+            var messages = await _context.Messages.FindAsync(id);
+            messages.AlreadyRead = 1;
+            _context.Messages.Update(messages);
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Messages/Delete
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var messages = await _context.Messages.FindAsync(id);
+            messages.IsDeleted = 1;
+            _context.Messages.Update(messages);
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        /*
+        public void UpdateUnreadMessageCount()
+        {
+            int count = _context.UsersHasMessages
+                 .Select(m => m.RecipientId == _userManager.GetUserId(User))
+                 .Count();
+            ViewBag.UnreadCount = count;
+            
+        }
+        */
 
         //// GET: Messages/Delete/5
         //public async Task<IActionResult> Delete(int? id)
@@ -104,17 +143,6 @@ namespace AdvertSite.Controllers
         //    }
 
         //    return View(messages);
-        //}
-
-        //// POST: Messages/Delete/5
-        //[HttpPost, ActionName("Delete")]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> DeleteConfirmed(int id)
-        //{
-        //    var messages = await _context.Messages.FindAsync(id);
-        //    _context.Messages.Remove(messages);
-        //    await _context.SaveChangesAsync();
-        //    return RedirectToAction(nameof(Index));
         //}
 
         //private bool MessagesExists(int id)

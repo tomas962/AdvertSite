@@ -55,7 +55,6 @@ namespace AdvertSite.Controllers
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> CreateAsync(int id, Comments comment)
         {
-            // Jeigu prisijunges
             if (ModelState.IsValid)
             {
                 var comments = new Comments

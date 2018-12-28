@@ -10,27 +10,69 @@
 <table class="table">
     <thead>
         <tr>
-            <th>
+            <th style="width: 2%">
+
+            </th>
+            <th style="width: 15%">
                 Siuntėjas
             </th>
-            <th>
+            <th  style="width: 20%">
+                Data
+            </th>
+            <th  style="width: 10%">
                 Tema
             </th>
-            <th></th>
+            <th  style="width: 35%">
+                Žinutė
+            </th>
+            <th style="width: 5%">
+                Atsakyti
+            </th>
+            <th  style="width: 5%">
+                Trinti
+            </th>
+            <th  style="width: 8%">
+                Pažymėti, kaip perskaityta
+            </th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+    @foreach (var item in Model) {
         <tr>
+            <td>
+                @if (item.Messages.AlreadyRead == 0)
+                {
+                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                }
+            </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Messages.Sender.UserName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Messages.Subject)
+                @Html.DisplayFor(modelItem => item.Messages.DateSent)
             </td>
             <td>
-                @Html.ActionLink("Plačiau", "Details", new { id=item.MessagesId })
-                @*@Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })*@
+                @Html.DisplayFor(modelItem => item.Messages.Subject)
+                @*
+                    Html.ActionLink("Plačiau", "Details", new { id = item.MessagesId })
+                *@
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Messages.Text)
+            </td>
+            <td>
+                <a title="Atsakyti vartotojui" asp-area="" asp-controller="Messages" asp-action="Create" asp-route-recipientID="@item.RecipientId">Atsakyti</a>
+
+            </td>
+            <td>
+                <form asp-action="Delete">
+                    <input type="submit" value="" class="btn btn-danger"/>
+                </form>
+            </td>
+            <td>
+                <form asp-action="MarkAsRead">
+                    <input type="submit" value="" class="btn btn-danger" />
+                </form>
             </td>
         </tr>
 }

@@ -178,6 +178,14 @@ namespace AdvertSite.Models
                     .HasColumnName("text")
                     .IsUnicode(false);
 
+                entity.Property(e => e.AlreadyRead).HasColumnName("alreadyRead");
+
+                entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
+
+                entity.Property(e => e.DateSent)
+                .HasColumnName("dateSent")
+                .HasColumnType("datetime2(0)");
+
                 entity.HasOne(d => d.Sender)
                     .WithMany(p => p.Messages)
                     .HasForeignKey(d => d.SenderId)

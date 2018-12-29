@@ -94,7 +94,9 @@ namespace AdvertSite.Controllers
         {
             // Jeigu vartotojas bando rasyti zinute sau
             if (Request.Query["recipientId"].Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)))
+            {
                 return RedirectToAction("Index", "Home");
+            }
 
 
             var recipient = await _context.Users.FirstOrDefaultAsync(user => user.Id == Request.Query["recipientId"]);
@@ -165,16 +167,19 @@ namespace AdvertSite.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        /*
-        public void UpdateUnreadMessageCount()
+        [HttpPost]
+        public int UpdateUnreadMessageCount()
         {
             int count = _context.UsersHasMessages
-                 .Select(m => m.RecipientId == _userManager.GetUserId(User))
+                 .Where(m => m.RecipientId == _userManager.GetUserId(User) && m.Messages.AlreadyRead == 0 && m.Messages.IsDeleted == 0)
                  .Count();
-            ViewBag.UnreadCount = count;
-            
+
+            return count;
         }
-        */
+        public string MyTestMethod()
+        {
+            return "Test String";
+        }
 
         //// GET: Messages/Delete/5
         //public async Task<IActionResult> Delete(int? id)

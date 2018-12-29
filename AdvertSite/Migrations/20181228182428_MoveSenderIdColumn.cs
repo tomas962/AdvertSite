@@ -14,17 +14,10 @@ namespace AdvertSite.Migrations
                 name: "fk_Users_has_Messages_Messages1",
                 table: "Users_has_Messages");
 
-            migrationBuilder.DropIndex(
-                name: "IX_Users_has_Messages_Messages_id_Messages_sender_id",
-                table: "Users_has_Messages");
-
             migrationBuilder.DropPrimaryKey(
                 name: "PK_Messages",
                 table: "Messages");
 
-            migrationBuilder.DropIndex(
-                name: "IX_Messages_sender_id",
-                table: "Messages");
 
             migrationBuilder.DropColumn(
                 name: "sender_id",

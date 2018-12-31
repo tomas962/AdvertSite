@@ -40,10 +40,11 @@ namespace AdvertSite.Controllers
         {
             var advert_siteContext =
                _context.UsersHasMessages
-                   .Where(m =>  m.RecipientId == _userManager.GetUserId(User) && m.Messages.IsDeleted == 0 )
+                   .Where(m => m.RecipientId == _userManager.GetUserId(User) && m.IsDeleted == 0)
                    .Include(m => m.Messages)
                    .ThenInclude(m => m.UsersHasMessages)
-                   .ThenInclude(userMessages => userMessages.Sender);
+                   .ThenInclude(userMessages => userMessages.Sender)
+                   .OrderByDescending(m => m.Messages.DateSent);
 
             return View(await advert_siteContext.ToListAsync());
         }
@@ -55,11 +56,12 @@ namespace AdvertSite.Controllers
         {
             var advert_siteContext =
                _context.UsersHasMessages
-                   .Where(m => m.SenderId == _userManager.GetUserId(User) && m.Messages.IsDeleted == 0)
+                   .Where(m => m.SenderId == _userManager.GetUserId(User) && m.IsDeleted == 0 && m.IsAdminMessage == 0)
                    .Include(m => m.Recipient)
                    .Include(m => m.Messages)
                    .ThenInclude(m => m.UsersHasMessages)
-                   .ThenInclude(userMessages => userMessages.Recipient);
+                   .ThenInclude(userMessages => userMessages.Recipient)
+                   .OrderByDescending(m => m.Messages.DateSent);
 
 
             return View(await advert_siteContext.ToListAsync());
@@ -87,6 +89,17 @@ namespace AdvertSite.Controllers
 
             return View(messages);
         }
+        // GET: Messages/CreateAdmin
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateAdmin()
+        {
+
+            var recipient = await _context.Users.FirstOrDefaultAsync(user => user.Id == Request.Query["recipientId"]);
+            var model = new CreateMessageModel { RecipientId = Request.Query["recipientId"], Recipient = recipient };
+            return View(model);
+        }
+
+
 
         // GET: Messages/Create
         [Authorize(Roles = "Admin,User")]
@@ -100,10 +113,50 @@ namespace AdvertSite.Controllers
 
 
             var recipient = await _context.Users.FirstOrDefaultAsync(user => user.Id == Request.Query["recipientId"]);
-            var model = new CreateMessageModel { RecipientId = Request.Query["recipientId"], Recipient = recipient};
+            var model = new CreateMessageModel { RecipientId = Request.Query["recipientId"], Recipient = recipient, Message = new Messages() };
+            model.Message.Subject = Request.Query["subject"];
             return View(model);
         }
 
+        // POST: Messages/CreateAdmin
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateAdmin([Bind("Message,RecipientId")] CreateMessageModel model)
+        {
+            var sender = _context.Users.FirstOrDefaultAsync(user => user.Id == _userManager.GetUserId(User));
+            model.UsersHasMessages = new UsersHasMessages { Sender = await sender };
+
+            if (ModelState.IsValid)
+            {
+                model.Message.DateSent = DateTime.Now;
+                _context.Add(model.Message);
+                await _context.SaveChangesAsync();
+
+                model.UsersHasMessages.IsAdminMessage = 1;
+                model.UsersHasMessages.IsDeleted = 0;
+                model.UsersHasMessages.AlreadyRead = 0;
+                model.UsersHasMessages.Messages = model.Message;
+                model.UsersHasMessages.MessagesId = model.Message.Id;
+
+                IList<ApplicationUser> users = _context.Users.ToList();
+                foreach (var user in users)
+                {
+
+                    //Data for UsersHasMessages table
+                    model.UsersHasMessages.RecipientId = user.Id;
+
+                    _context.Add(model.UsersHasMessages);
+                    await _context.SaveChangesAsync();
+                }
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(model);
+        }
+        
         // POST: Messages/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -119,8 +172,6 @@ namespace AdvertSite.Controllers
 
             //model.Message.SenderId = model.Message.Sender.Id;
 
-            model.Message.IsDeleted = 0;
-            model.Message.AlreadyRead = 0;
             model.Message.DateSent = DateTime.Now;
             if (ModelState.IsValid)
             {
@@ -131,6 +182,9 @@ namespace AdvertSite.Controllers
                 model.UsersHasMessages.Messages = model.Message;
                 model.UsersHasMessages.MessagesId = model.Message.Id;
                 model.UsersHasMessages.RecipientId = model.RecipientId;
+                model.UsersHasMessages.IsAdminMessage = 0;
+                model.UsersHasMessages.IsDeleted = 0;
+                model.UsersHasMessages.AlreadyRead = 0;
 
                 _context.Add(model.UsersHasMessages);
                 await _context.SaveChangesAsync();
@@ -143,11 +197,11 @@ namespace AdvertSite.Controllers
         [HttpPost, ActionName("MarkAsRead")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,User")]
-        public async Task<IActionResult> MarkAsRead(int id)
+        public async Task<IActionResult> MarkAsRead(int id, string sender_id, string recipient_id)
         {
-            var messages = await _context.Messages.FindAsync(id);
+            var messages = await _context.UsersHasMessages.FindAsync(recipient_id, id, sender_id);
             messages.AlreadyRead = 1;
-            _context.Messages.Update(messages);
+            _context.UsersHasMessages.Update(messages);
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -157,11 +211,11 @@ namespace AdvertSite.Controllers
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,User")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, string sender_id, string recipient_id)
         {
-            var messages = await _context.Messages.FindAsync(id);
+            var messages = await _context.UsersHasMessages.FindAsync(recipient_id, id, sender_id);
             messages.IsDeleted = 1;
-            _context.Messages.Update(messages);
+            _context.UsersHasMessages.Update(messages);
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -171,14 +225,10 @@ namespace AdvertSite.Controllers
         public int UpdateUnreadMessageCount()
         {
             int count = _context.UsersHasMessages
-                 .Where(m => m.RecipientId == _userManager.GetUserId(User) && m.Messages.AlreadyRead == 0 && m.Messages.IsDeleted == 0)
+                 .Where(m => m.RecipientId == _userManager.GetUserId(User) && m.AlreadyRead == 0 && m.IsDeleted == 0)
                  .Count();
 
             return count;
-        }
-        public string MyTestMethod()
-        {
-            return "Test String";
         }
 
         //// GET: Messages/Delete/5

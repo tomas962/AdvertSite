@@ -177,9 +177,6 @@ namespace AdvertSite.Models
                     .HasColumnName("text")
                     .IsUnicode(false);
 
-                entity.Property(e => e.AlreadyRead).HasColumnName("alreadyRead");
-
-                entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
 
                 entity.Property(e => e.DateSent)
                 .HasColumnName("dateSent")
@@ -253,6 +250,12 @@ namespace AdvertSite.Models
                 entity.Property(e => e.MessagesId).HasColumnName("Messages_id");
 
                 entity.Property(e => e.SenderId).HasColumnName("Messages_sender_id");
+
+                entity.Property(e => e.AlreadyRead).HasColumnName("alreadyRead");
+
+                entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
+
+                entity.Property(e => e.IsAdminMessage).HasColumnName("isAdminMessage");
 
                 entity.HasOne(d => d.Recipient)
                     .WithMany(p => p.ReceivedMessages)

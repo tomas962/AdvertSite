@@ -20,8 +20,6 @@ namespace AdvertSite.Models
         [DisplayName("Pranešimas")]
         public string Text { get; set; }
         public DateTime DateSent { get; set; }
-        public short? AlreadyRead { get; set; }
-        public short? IsDeleted { get; set; }
 
         public ICollection<UsersHasMessages> UsersHasMessages { get; set; }
     }

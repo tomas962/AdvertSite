@@ -16,9 +16,10 @@
                 <input asp-for="Message.Subject" class="form-control" />
                 <span asp-validation-for="Message.Subject" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div>
                 <label asp-for="Message.Text" class="control-label"></label>
-                <input asp-for="Message.Text" class="form-control" />
+                <textarea asp-for="Message.Text" class="form-control" style="resize: none;" rows="8" cols="60" id="charTextArea"></textarea>
+                <h6 id="charCount">Likęs simboliu kiekis: 1000</h6>
                 <span asp-validation-for="Message.Text" class="text-danger"></span>
             </div>
             @*<div class="form-group">
@@ -26,8 +27,10 @@
                     <select asp-for="SenderId" class ="form-control" asp-items="ViewBag.SenderId"></select>
                 </div>*@
             <input asp-for="RecipientId" class="" hidden />
+
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-default" />
+            <input type="submit" value="Create" class="btn btn-default" />
+
             </div>
         </form>
     </div>
@@ -36,3 +39,18 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+
+<script>
+    $('#charTextArea').keyup(function () {
+        var max = 1000;
+        var len = $(this).val().length;
+        if (len >= max) {
+            $('#charCount').text("Pasiektas simbolių limitas");
+            $('#charCount').css("color", "red");
+        }
+        else {
+            $('#charCount').css("color", "black");
+            $('#charCount').text("Likęs simboliu kiekis: " + (max - len));
+        }
+    });
+</script>

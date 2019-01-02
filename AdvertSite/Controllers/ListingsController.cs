@@ -59,7 +59,9 @@ namespace AdvertSite.Controllers
                 return NotFound();
             }
 
-            return View(listings);
+            var listingAndComment = new ListingAndComment { Listing = listings, Comment = new Comments() };
+
+            return View(listingAndComment);
         }
 
         // GET: Listings/Create
@@ -250,6 +252,13 @@ namespace AdvertSite.Controllers
             // Registracijoje veikia, cia error "Microsoft.AspNetCore.Mvc.ViewFeatures.Internal.TempDataSerializer.EnsureObjectCanBeSerialized(object item)"
             //TempData["Message"] = new MessageViewModel() { CssClassName = "alert-success", Title = "Operacija sėkminga", Message = "Skelbimas dabar matomas kitiems vartotojams" };
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ListingsJSON()
+        {
+            var listings = await _context.Listings.ToListAsync();
+            return Json(listings);
         }
 
         private bool ListingsExists(int id)

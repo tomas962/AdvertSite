@@ -1,7 +1,8 @@
-﻿@model AdvertSite.Models.Listings
+﻿
+
+@model AdvertSite.Models.ListingAndComment
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<ApplicationUser> UserManager
-
 @{
     ViewData["Title"] = "Details";
 }
@@ -13,79 +14,79 @@
     <hr />
     <dl class="dl-horizontal">
         <dt>
-            @Html.DisplayNameFor(model => model.Name)
+            @Html.DisplayNameFor(model => model.Listing.Name)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Name)
+            @Html.DisplayFor(model => model.Listing.Name)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Description)
+            @Html.DisplayNameFor(model => model.Listing.Description)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Description)
+            @Html.DisplayFor(model => model.Listing.Description)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Price)
+            @Html.DisplayNameFor(model => model.Listing.Price)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Price)
+            @Html.DisplayFor(model => model.Listing.Price)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Quantity)
+            @Html.DisplayNameFor(model => model.Listing.Quantity)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Quantity)
+            @Html.DisplayFor(model => model.Listing.Quantity)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Date)
+            @Html.DisplayNameFor(model => model.Listing.Date)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Date)
+            @Html.DisplayFor(model => model.Listing.Date)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Verified)
+            @Html.DisplayNameFor(model => model.Listing.Verified)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Verified)
+            @Html.DisplayFor(model => model.Listing.Verified)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Display)
+            @Html.DisplayNameFor(model => model.Listing.Display)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Display)
+            @Html.DisplayFor(model => model.Listing.Display)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Subcategory)
+            @Html.DisplayNameFor(model => model.Listing.Subcategory)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Subcategory.Id)
+            @Html.DisplayFor(model => model.Listing.Subcategory.Id)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.User)
+            @Html.DisplayNameFor(model => model.Listing.User)
         </dt>
         <dd>
-            <a asp-area="" asp-controller="User" asp-action="Details" asp-route-id="@Model.User.Id">@Html.DisplayFor(model => model.User.Email)</a>
+            <a asp-area="" asp-controller="User" asp-action="Details" asp-route-id="@Model.Listing.User.Id">@Html.DisplayFor(model => model.Listing.User.Email)</a>
         </dd>
         <dt>
-            
+
         </dt>
         <dd>
 
-            <a asp-area="" asp-controller="Messages" asp-action="Create" asp-route-recipientID=@Model.User.Id >Siųsti žinutę skelbimo autoriui</a>
+            <a asp-area="" asp-controller="Messages" asp-action="Create" asp-route-recipientID=@Model.Listing.User.Id>Siųsti žinutę skelbimo autoriui</a>
         </dd>
         <dt>
             Komentarų kiekis
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Comments.Count)
+            @Html.DisplayFor(model => model.Listing.Comments.Count)
         </dd>
     </dl>
 </div>
 <div>
     <h4>Komentarai</h4>
-    <dl class="dl-horizontal">
+    <dl class="dl-horizontal" id="commentList">
 
-        @foreach (var comment in Model.Comments)
+        @foreach (var comment in Model.Listing.Comments)
         {
             <dt>
                 @comment.User.UserName
@@ -98,19 +99,28 @@
             <dd>
                 @comment.Text
                 @*
-                Jeigu vartotojas, kuris parase sita komentara arba administratorius
+                    Jeigu vartotojas, kuris parase sita komentara arba administratorius
                 *@
                 @if (User.IsInRole("Admin") || comment.Userid.Equals(UserManager.GetUserId(User)))
                 {
-                    <a asp-action="Delete" asp-controller="Comment" asp-route-id="@comment.Id">Šalinti</a>
+                    <button class="btn btn-danger" onclick="deleteComment(event)" value="@comment.Id">Šalinti</button>
                 }
             </dd>
         }
 
     </dl>
+    <form onsubmit="return postComment(event)" method="post">
+        <div class="form-group">
+            <label asp-for="Comment.Text" class="control-label">Jūsų komentaras</label>
+            <textarea asp-for="Comment.Text" id="Comment.Text" class="form-control"></textarea>
+            <span asp-validation-for="Comment.Text" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
 </div>
 <div>
-    <a asp-controller="Comment" asp-action="Create" asp-route-id="@Model.Id">Rašyti komentarą</a> |
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+    @*<a asp-controller="Comment" asp-action="Create" asp-route-id="@Model.Listing.Id">Rašyti komentarą</a> |*@
+    <a asp-action="Edit" asp-route-id="@Model.Listing.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>

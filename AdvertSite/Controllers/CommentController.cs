@@ -7,17 +7,21 @@ using Microsoft.AspNetCore.Mvc;
 using AdvertSite.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace AdvertSite.Controllers
 {
     public class CommentController : Controller
     {
         private readonly advert_siteContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CommentController(advert_siteContext context)
+
+        public CommentController(advert_siteContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
-            
+            _userManager = userManager;
         }
 
         // GET: Comment
@@ -74,6 +78,30 @@ namespace AdvertSite.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        // POST: Comment/Create/4
+        [HttpPost]
+        [Authorize(Roles = "Admin,User")]
+        public async Task<IActionResult> CreateAjax(int id, ListingAndComment listingAndComment)
+        {
+            if (ModelState.IsValid)
+            {
+                var comments = new Comments
+                {
+                    Listingid = id,
+                    Userid = this.User.FindFirstValue(ClaimTypes.NameIdentifier),
+                    Text = listingAndComment.Comment.Text,
+                    Date = DateTime.Now
+                };
+                _context.Add(comments);
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+
+            // turetu sito nepasiekti
+            return RedirectToAction("Index", "Home");
+        }
+
         // GET: Comment/Edit/5
         public ActionResult Edit(int id)
         {
@@ -121,7 +149,7 @@ namespace AdvertSite.Controllers
 
         // POST: Comment/Delete/5
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
+        //[ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
@@ -138,6 +166,27 @@ namespace AdvertSite.Controllers
                 // Error message goes here - user cannot delete this comment
             }
             return RedirectToAction("Details", "Listings", new { id = listing_id });
+        }
+
+        [HttpGet]
+        public async Task<string> GetComments(int listingId)
+        {
+            var comments = _context.Comments.Include(c => c.User).Where(c => c.Listingid == listingId);
+            string htmlString = "";
+            await comments.ForEachAsync((comment) =>
+            {
+                if (User.IsInRole("Admin") || comment.Userid.Equals(_userManager.GetUserId(User)))
+                {
+                    //<button class="btn btn-danger" onclick="deleteComment(event)" value="@comment.Id">Šalinti</button>
+                    htmlString += string.Format("<dt>{0}</dt><dt>{1}</dt><dd>{2} <button class='btn btn-danger' onclick='deleteComment(event)' value='{3}'>Šalinti</button></dd>", comment.User.UserName, comment.Date, comment.Text, comment.Id);
+                }
+                else
+                {
+                    htmlString += string.Format("<dt>{0}</dt><dt>{1}</dt><dd>{2}</dd>", comment.User.UserName, comment.Date, comment.Text);
+                }
+            });
+            
+            return htmlString;
         }
     }
 }

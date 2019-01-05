@@ -99,5 +99,5 @@
 <div>
     @*<a asp-controller="Comment" asp-action="Create" asp-route-id="@Model.Listing.Id">Rašyti komentarą</a> |*@
     <a asp-action="Edit" asp-route-id="@Model.Listing.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a href='javascript:history.go(-1)'> Atgal</a>
 </div>

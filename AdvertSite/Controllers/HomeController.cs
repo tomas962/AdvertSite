@@ -6,15 +6,24 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using AdvertSite.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace AdvertSite.Controllers
 {
     [AllowAnonymous]
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private readonly advert_siteContext _context;
+
+        public HomeController(advert_siteContext context)
         {
-            return View();
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var categories = await _context.Category.Include(c => c.Subcategory).ToListAsync();
+            return View(categories);
         }
 
         public IActionResult About()

@@ -25,10 +25,19 @@ namespace AdvertSite.Controllers
         
         // GET: Listings
         [AllowAnonymous]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? id)
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).ToListAsync();/*(l => l.Verified == 1 && l.Display == 1).Include(l => l.Subcategory).Include(l => l.User)*/;
-            return View(await masterContext);
+            var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1);
+            if (id  != null )
+            {
+                if (Request.Query["type"].Equals("Category"))
+                    masterContext = masterContext.Where(l => l.Subcategory.Categoryid == id);
+
+                else if (Request.Query["type"].Equals("Subcategory"))
+                    masterContext = masterContext.Where(l => l.Subcategoryid == id);
+            }
+
+            return View(await masterContext.ToListAsync());
         }
         // GET: Uncomfirmed
         [Authorize(Roles = "Admin")]

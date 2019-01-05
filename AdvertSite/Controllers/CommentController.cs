@@ -169,24 +169,36 @@ namespace AdvertSite.Controllers
         }
 
         [HttpGet]
-        public async Task<string> GetComments(int listingId)
+        public async Task<IActionResult> GetComments(int listingId)
         {
-            var comments = _context.Comments.Include(c => c.User).Where(c => c.Listingid == listingId);
-            string htmlString = "";
-            await comments.ForEachAsync((comment) =>
+            var comments = await _context.Comments.Include(c => c.User).Where(c => c.Listingid == listingId).ToListAsync();
+
+            var coms = comments.Select((item) =>
             {
-                if (User.IsInRole("Admin") || comment.Userid.Equals(_userManager.GetUserId(User)))
-                {
-                    //<button class="btn btn-danger" onclick="deleteComment(event)" value="@comment.Id">Šalinti</button>
-                    htmlString += string.Format("<dt>{0}</dt><dt>{1}</dt><dd>{2} <button class='btn btn-danger' onclick='deleteComment(event)' value='{3}'>Šalinti</button></dd>", comment.User.UserName, comment.Date, comment.Text, comment.Id);
+                if (User.IsInRole("Admin") || item.Userid.Equals(_userManager.GetUserId(User))) {
+                    return new
+                    {
+                        id = item.Id,
+                        text = item.Text,
+                        date = item.Date,
+                        userName = item.User.UserName,
+                        canDelete = true
+                    };
                 }
-                else
+                    else
                 {
-                    htmlString += string.Format("<dt>{0}</dt><dt>{1}</dt><dd>{2}</dd>", comment.User.UserName, comment.Date, comment.Text);
+                    return new
+                    {
+                        id = item.Id,
+                        text = item.Text,
+                        date = item.Date,
+                        userName = item.User.UserName,
+                        canDelete = false
+                    };
                 }
             });
             
-            return htmlString;
+            return Ok(coms);
         }
     }
 }

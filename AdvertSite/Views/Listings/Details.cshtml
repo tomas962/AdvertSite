@@ -1,6 +1,4 @@
-﻿
-
-@model AdvertSite.Models.ListingAndComment
+﻿@model AdvertSite.Models.ListingAndComment
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<ApplicationUser> UserManager
 @{
@@ -77,8 +75,8 @@
         <dt>
             Komentarų kiekis
         </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Listing.Comments.Count)
+        <dd id="comment-count">
+            
         </dd>
     </dl>
 </div>
@@ -86,30 +84,9 @@
     <h4>Komentarai</h4>
     <dl class="dl-horizontal" id="commentList">
 
-        @foreach (var comment in Model.Listing.Comments)
-        {
-            <dt>
-                @comment.User.UserName
-
-            </dt>
-            <dt>
-                @comment.Date
-
-            </dt>
-            <dd>
-                @comment.Text
-                @*
-                    Jeigu vartotojas, kuris parase sita komentara arba administratorius
-                *@
-                @if (User.IsInRole("Admin") || comment.Userid.Equals(UserManager.GetUserId(User)))
-                {
-                    <button class="btn btn-danger" onclick="deleteComment(event)" value="@comment.Id">Šalinti</button>
-                }
-            </dd>
-        }
-
     </dl>
     <form onsubmit="return postComment(event)" method="post">
+        
         <div class="form-group">
             <label asp-for="Comment.Text" class="control-label">Jūsų komentaras</label>
             <textarea asp-for="Comment.Text" id="Comment.Text" class="form-control"></textarea>

@@ -3,15 +3,21 @@
 
 // Write your JavaScript code.
 
-let vals = window.location.href.split("/");
-let listingId = vals[vals.length - 1];
-$(document).ready(getComments(listingId))
+
+$(document).ready(() => {
+    if (window.location.href.includes("Listings/Details")) {
+        let vals = window.location.href.split("/");
+        let listingId = vals[vals.length - 1];
+        getComments(listingId);
+    }
+})
 
 
 function postComment(event) {
     event.preventDefault();
 
-
+    let vals = window.location.href.split("/");
+    let listingId = vals[vals.length - 1];
     fetch('/Comment/CreateAjax?' + $.param({
         Id: listingId,
         "Comment.Text": document.getElementById('Comment.Text').value

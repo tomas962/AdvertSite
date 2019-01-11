@@ -100,7 +100,7 @@ namespace AdvertSite.Controllers
                     Price = newListing.Price,
                     GoogleLatitude = newListing.GoogleLatitude,
                     GoogleLongitude = newListing.GoogleLongitude,
-                    GoogleRadius = newListing.GoogleRadius
+                    GoogleRadius = newListing.GoogleRadius * 1000
                 };
 
                 listings.Userid = this.User.FindFirstValue(ClaimTypes.NameIdentifier);

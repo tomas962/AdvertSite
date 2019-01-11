@@ -23,7 +23,7 @@ namespace AdvertSite.Models
 
         public double? GoogleLatitude { get; set; }
         public double? GoogleLongitude { get; set; }
-        [DisplayName("Radius")]
+        [DisplayName("Radius (km)")]
         [DataType("Double")]
         public double? GoogleRadius { get; set; }
     }

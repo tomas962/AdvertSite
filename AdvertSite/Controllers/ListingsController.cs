@@ -88,22 +88,39 @@ namespace AdvertSite.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles ="Admin,User")]
-        public async Task<IActionResult> Create([Bind("Id,Userid,Subcategoryid,Name,Description,Price,Quantity,Date,Verified,Display")] Listings listings)
+        public async Task<IActionResult> Create([Bind("Subcategoryid,Name,Description,Price,GoogleLatitude,GoogleLongitude,GoogleRadius")] ListingNewModel newListing)
         {
             if (ModelState.IsValid)
             {
+                Listings listings = new Listings()
+                {
+                    Subcategoryid = newListing.Subcategoryid,
+                    Name = newListing.Name,
+                    Description = newListing.Description,
+                    Price = newListing.Price,
+                    GoogleLatitude = newListing.GoogleLatitude,
+                    GoogleLongitude = newListing.GoogleLongitude,
+                    GoogleRadius = newListing.GoogleRadius
+                };
+
                 listings.Userid = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 listings.Date = DateTime.Now;
                 listings.Display = 1;
                 listings.Verified = 0;
+                /*
+                listings.GoogleLongitude = 0;// newListing.GoogleLongitude;
+                listings.GoogleLatitude = 0;// newListing.GoogleLatitude;
+                listings.GoogleRadius = 10000;// newListing.GoogleRadius;
+                */
                 _context.Add(listings);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Id", listings.Subcategoryid);
-            ViewData["Userid"] = new SelectList(_context.Users, "Id", "UserName", listings.Userid);
-            return View(listings);
+
+            ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Id");
+            ViewData["Userid"] = new SelectList(_context.Users, "Id", "UserName");
+            return View(newListing);
         }
 
         // GET: Listings/Edit/5

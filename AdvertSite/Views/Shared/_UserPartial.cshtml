@@ -3,25 +3,39 @@
 @using AdvertSite.Models
 
 @inject UserManager<ApplicationUser> UserManager
-<!--
-    <script>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script type="text/javascript">
+    function updateUnreadCount()
+    {
         $.ajax({
-            url: '@Url.Action("UpdateUnreadMessageCount", "Messages")'
-        });
-    </script>
--->
+            type: "POST",
+            url: '@Url.Action("UpdateUnreadMessageCount", "Messages")',
+            async: false,
+            success: function (result) {
+                var color = result > 0 ? "red" : "light_grey";
+                $('#unreadCount').html(result);
+                $('#unreadCount').css('background-color', color);
+            }
+        })
+    }
+
+    $(document).ready(function () {
+        updateUnreadCount();
+    });
+
+</script>
 @*
     User navigacijos juosta
 *@
+
+
 @if (User.Identity.IsAuthenticated)
 {
-    <li>
-        <a asp-controller="Messages" asp-action="Index">
+    <li class="nav-item">
+        <a class="nav-link" asp-controller="Messages" asp-action="Index">
             Pranešimai
-            <span class="badge badge-light">
-                @*
-            @ViewBag.UnreadCount
-                *@
+            <span class="badge badge-light" id="unreadCount">
                 0
             </span>
         </a>

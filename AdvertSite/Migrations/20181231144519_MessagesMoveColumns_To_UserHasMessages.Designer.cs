@@ -4,14 +4,16 @@ using AdvertSite.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AdvertSite.Migrations
 {
     [DbContext(typeof(advert_siteContext))]
-    partial class advert_siteContextModelSnapshot : ModelSnapshot
+    [Migration("20181231144519_MessagesMoveColumns_To_UserHasMessages")]
+    partial class MessagesMoveColumns_To_UserHasMessages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -150,21 +152,13 @@ namespace AdvertSite.Migrations
                         .HasColumnType("datetime2(0)");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnName("description")
                         .IsUnicode(false);
 
                     b.Property<short?>("Display")
                         .HasColumnName("display");
 
-                    b.Property<double?>("GoogleLatitude");
-
-                    b.Property<double?>("GoogleLongitude");
-
-                    b.Property<double?>("GoogleRadius");
-
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnName("name")
                         .HasMaxLength(45)
                         .IsUnicode(false);
@@ -204,20 +198,22 @@ namespace AdvertSite.Migrations
                         .HasColumnName("id")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<short?>("AlreadyRead")
+                        .HasColumnName("alreadyRead");
+
                     b.Property<DateTime>("DateSent")
                         .HasColumnName("dateSent")
                         .HasColumnType("datetime2(0)");
 
+                    b.Property<short?>("IsDeleted")
+                        .HasColumnName("isDeleted");
+
                     b.Property<string>("Subject")
-                        .IsRequired()
                         .HasColumnName("subject")
-                        .HasMaxLength(100)
                         .IsUnicode(false);
 
                     b.Property<string>("Text")
-                        .IsRequired()
                         .HasColumnName("text")
-                        .HasMaxLength(1000)
                         .IsUnicode(false);
 
                     b.HasKey("Id");
@@ -295,14 +291,7 @@ namespace AdvertSite.Migrations
                     b.Property<string>("SenderId")
                         .HasColumnName("Messages_sender_id");
 
-                    b.Property<short?>("AlreadyRead")
-                        .HasColumnName("alreadyRead");
-
-                    b.Property<short?>("IsAdminMessage")
-                        .HasColumnName("isAdminMessage");
-
-                    b.Property<short?>("IsDeleted")
-                        .HasColumnName("isDeleted");
+                    b.Property<short?>("isAdminMessage");
 
                     b.HasKey("RecipientId", "MessagesId", "SenderId");
 
@@ -428,14 +417,12 @@ namespace AdvertSite.Migrations
                     b.HasOne("AdvertSite.Models.Listings", "Listing")
                         .WithMany("Comments")
                         .HasForeignKey("Listingid")
-                        .HasConstraintName("fk_Comments_Listings11")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasConstraintName("fk_Comments_Listings11");
 
                     b.HasOne("AdvertSite.Models.ApplicationUser", "User")
                         .WithMany("Comments")
                         .HasForeignKey("Userid")
-                        .HasConstraintName("fk_Comments_Users11")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasConstraintName("fk_Comments_Users11");
                 });
 
             modelBuilder.Entity("AdvertSite.Models.ListingPictures", b =>
@@ -477,8 +464,7 @@ namespace AdvertSite.Migrations
                     b.HasOne("AdvertSite.Models.Category", "Category")
                         .WithMany("Subcategory")
                         .HasForeignKey("Categoryid")
-                        .HasConstraintName("fk_Subcategory_Category1")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasConstraintName("fk_Subcategory_Category1");
                 });
 
             modelBuilder.Entity("AdvertSite.Models.UsersHasMessages", b =>

@@ -1,7 +1,6 @@
-﻿@model AdvertSite.Models.Listings
+﻿@model AdvertSite.Models.ListingAndComment
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<ApplicationUser> UserManager
-
 @{
     ViewData["Title"] = "Details";
 }
@@ -13,104 +12,159 @@
     <hr />
     <dl class="dl-horizontal">
         <dt>
-            @Html.DisplayNameFor(model => model.Name)
+            @Html.DisplayNameFor(model => model.Listing.Name)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Name)
+            @Html.DisplayFor(model => model.Listing.Name)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Description)
+            @Html.DisplayNameFor(model => model.Listing.Description)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Description)
+            @Html.DisplayFor(model => model.Listing.Description)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Price)
+            @Html.DisplayNameFor(model => model.Listing.Price)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Price)
+            @Html.DisplayFor(model => model.Listing.Price)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Quantity)
+            @Html.DisplayNameFor(model => model.Listing.Quantity)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Quantity)
+            @Html.DisplayFor(model => model.Listing.Quantity)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Date)
+            @Html.DisplayNameFor(model => model.Listing.Date)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Date)
+            @Html.DisplayFor(model => model.Listing.Date)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Verified)
+            @Html.DisplayNameFor(model => model.Listing.Verified)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Verified)
+            @Html.DisplayFor(model => model.Listing.Verified)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Display)
+            @Html.DisplayNameFor(model => model.Listing.Display)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Display)
+            @Html.DisplayFor(model => model.Listing.Display)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Subcategory)
+            @Html.DisplayNameFor(model => model.Listing.Subcategory)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Subcategory.Id)
+            @Html.DisplayFor(model => model.Listing.Subcategory.Id)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.User)
+            @Html.DisplayNameFor(model => model.Listing.User)
         </dt>
         <dd>
-            <a asp-area="" asp-controller="User" asp-action="Details" asp-route-id="@Model.User.Id">@Html.DisplayFor(model => model.User.Email)</a>
+            <a asp-area="" asp-controller="User" asp-action="Details" asp-route-id="@Model.Listing.User.Id">@Html.DisplayFor(model => model.Listing.User.Email)</a>
         </dd>
         <dt>
-            
-        </dt>
-        <dd>
 
-            <a asp-area="" asp-controller="Messages" asp-action="Create" asp-route-recipientID=@Model.User.Id >Siųsti žinutę skelbimo autoriui</a>
+        </dt>
+        <dd>
+            <a asp-area="" asp-controller="Messages" asp-action="Create" asp-route-recipientID=@Model.Listing.User.Id>Siųsti žinutę skelbimo autoriui</a>
+        </dd>
+        <dt>
+            Lokacija
+        </dt>
+        <dd>
+            @if (Model.Listing.GoogleLatitude == null || Model.Listing.GoogleLongitude == null)
+            {
+                <p>Vieta nenurodyta</p>
+            }
+            else
+            {
+                <div id="map"></div>
+            }
         </dd>
         <dt>
             Komentarų kiekis
         </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Comments.Count)
+        <dd id="comment-count">
+
         </dd>
     </dl>
 </div>
+
 <div>
     <h4>Komentarai</h4>
-    <dl class="dl-horizontal">
+    <dl class="dl-horizontal" id="commentList"></dl>
+    <form onsubmit="return postComment(event)" method="post">
 
-        @foreach (var comment in Model.Comments)
-        {
-            <dt>
-                @comment.User.UserName
+        <div class="form-group">
+            <label asp-for="Comment.Text" class="control-label">Jūsų komentaras</label>
+            <textarea asp-for="Comment.Text" id="Comment.Text" class="form-control"></textarea>
+            <span asp-validation-for="Comment.Text" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
 
-            </dt>
-            <dt>
-                @comment.Date
-
-            </dt>
-            <dd>
-                @comment.Text
-                @*
-                Jeigu vartotojas, kuris parase sita komentara arba administratorius
-                *@
-                @if (User.IsInRole("Admin") || comment.Userid.Equals(UserManager.GetUserId(User)))
-                {
-                    <a asp-action="Delete" asp-controller="Comment" asp-route-id="@comment.Id">Šalinti</a>
-                }
-            </dd>
-        }
-
-    </dl>
 </div>
 <div>
-    <a asp-controller="Comment" asp-action="Create" asp-route-id="@Model.Id">Rašyti komentarą</a> |
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    @*<a asp-controller="Comment" asp-action="Create" asp-route-id="@Model.Listing.Id">Rašyti komentarą</a> |*@
+    <a asp-action="Edit" asp-route-id="@Model.Listing.Id">Edit</a> |
+    <a href='javascript:history.go(-1)'> Atgal</a>
 </div>
+
+
+
+@* 
+    *
+    *
+    *
+    *   GOOGLE MAPS 
+    *
+    *
+    *
+*@
+<style>
+    /* Set the size of the div element that contains the map */
+    #map {
+        height: 400px; /* The height is 400 pixels */
+        width: 100%; /* The width is the width of the web page */
+    }
+</style>
+<script>
+    // Initialize and add the map
+    function initMap() {
+        // The location of Uluru
+        var uluru = { lat: @Model.Listing.GoogleLatitude, lng: @Model.Listing.GoogleLongitude };
+        // The map, centered at Uluru
+        var map = new google.maps.Map(
+            document.getElementById('map'),
+            {
+                zoom: 4,
+                center: uluru
+            });
+        // The marker, positioned at Uluru
+        var marker = new google.maps.Marker({ position: uluru, map: map });
+        var mapRadius = 0;
+        if (@Model.Listing.GoogleRadius != null)
+            mapRadius = @Model.Listing.GoogleRadius;
+        var circle = new google.maps.Circle({
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#FF0000',
+            fillOpacity: 0.35,
+            map: map,
+            center: uluru,
+            radius: @Model.Listing.GoogleRadius
+        });
+    }
+</script>
+<!--Load the API from the specified URL
+* The async attribute allows the browser to render the page while the API loads
+* The key parameter will contain your own API key (which is not needed for this tutorial)
+* The callback parameter executes the initMap() function
+-->
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
+</script>

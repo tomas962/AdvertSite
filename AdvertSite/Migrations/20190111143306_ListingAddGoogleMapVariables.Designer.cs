@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AdvertSite.Migrations
 {
     [DbContext(typeof(advert_siteContext))]
-    [Migration("20181228113358_MessagesSenderId")]
-    partial class MessagesSenderId
+    [Migration("20190111143306_ListingAddGoogleMapVariables")]
+    partial class ListingAddGoogleMapVariables
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -152,13 +152,21 @@ namespace AdvertSite.Migrations
                         .HasColumnType("datetime2(0)");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnName("description")
                         .IsUnicode(false);
 
                     b.Property<short?>("Display")
                         .HasColumnName("display");
 
+                    b.Property<double?>("GoogleLatitude");
+
+                    b.Property<double?>("GoogleLongitude");
+
+                    b.Property<double?>("GoogleRadius");
+
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnName("name")
                         .HasMaxLength(45)
                         .IsUnicode(false);
@@ -193,35 +201,28 @@ namespace AdvertSite.Migrations
 
             modelBuilder.Entity("AdvertSite.Models.Messages", b =>
                 {
-                    b.Property<int?>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnName("id")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("SenderId")
-                        .HasColumnName("sender_id");
-
-                    b.Property<short?>("AlreadyRead")
-                        .HasColumnName("alreadyRead");
 
                     b.Property<DateTime>("DateSent")
                         .HasColumnName("dateSent")
                         .HasColumnType("datetime2(0)");
 
-                    b.Property<short?>("IsDeleted")
-                        .HasColumnName("isDeleted");
-
                     b.Property<string>("Subject")
+                        .IsRequired()
                         .HasColumnName("subject")
+                        .HasMaxLength(100)
                         .IsUnicode(false);
 
                     b.Property<string>("Text")
+                        .IsRequired()
                         .HasColumnName("text")
+                        .HasMaxLength(1000)
                         .IsUnicode(false);
 
-                    b.HasKey("Id", "SenderId");
-
-                    b.HasIndex("SenderId");
+                    b.HasKey("Id");
 
                     b.ToTable("Messages");
                 });
@@ -293,12 +294,23 @@ namespace AdvertSite.Migrations
                     b.Property<int>("MessagesId")
                         .HasColumnName("Messages_id");
 
-                    b.Property<string>("MessagesSenderId")
+                    b.Property<string>("SenderId")
                         .HasColumnName("Messages_sender_id");
 
-                    b.HasKey("RecipientId", "MessagesId", "MessagesSenderId");
+                    b.Property<short?>("AlreadyRead")
+                        .HasColumnName("alreadyRead");
 
-                    b.HasIndex("MessagesId", "MessagesSenderId");
+                    b.Property<short?>("IsAdminMessage")
+                        .HasColumnName("isAdminMessage");
+
+                    b.Property<short?>("IsDeleted")
+                        .HasColumnName("isDeleted");
+
+                    b.HasKey("RecipientId", "MessagesId", "SenderId");
+
+                    b.HasIndex("MessagesId");
+
+                    b.HasIndex("SenderId");
 
                     b.ToTable("Users_has_Messages");
                 });
@@ -447,14 +459,6 @@ namespace AdvertSite.Migrations
                         .HasConstraintName("fk_Listings_Users1");
                 });
 
-            modelBuilder.Entity("AdvertSite.Models.Messages", b =>
-                {
-                    b.HasOne("AdvertSite.Models.ApplicationUser", "Sender")
-                        .WithMany("Messages")
-                        .HasForeignKey("SenderId")
-                        .HasConstraintName("fk_Messages_Users1");
-                });
-
             modelBuilder.Entity("AdvertSite.Models.Reviews", b =>
                 {
                     b.HasOne("AdvertSite.Models.ApplicationUser", "Buyer")
@@ -478,15 +482,20 @@ namespace AdvertSite.Migrations
 
             modelBuilder.Entity("AdvertSite.Models.UsersHasMessages", b =>
                 {
-                    b.HasOne("AdvertSite.Models.ApplicationUser", "Recipient")
+                    b.HasOne("AdvertSite.Models.Messages", "Messages")
                         .WithMany("UsersHasMessages")
+                        .HasForeignKey("MessagesId")
+                        .HasConstraintName("fk_Users_has_Messages_Messages1");
+
+                    b.HasOne("AdvertSite.Models.ApplicationUser", "Recipient")
+                        .WithMany("ReceivedMessages")
                         .HasForeignKey("RecipientId")
                         .HasConstraintName("fk_Users_has_Messages_Users1");
 
-                    b.HasOne("AdvertSite.Models.Messages", "Messages")
-                        .WithMany("UsersHasMessages")
-                        .HasForeignKey("MessagesId", "MessagesSenderId")
-                        .HasConstraintName("fk_Users_has_Messages_Messages1");
+                    b.HasOne("AdvertSite.Models.ApplicationUser", "Sender")
+                        .WithMany("SentMessages")
+                        .HasForeignKey("SenderId")
+                        .HasConstraintName("fk_Users_has_Messages_Users2");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

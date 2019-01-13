@@ -1,10 +1,11 @@
 ﻿@model IEnumerable<AdvertSite.Models.UsersHasMessages>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "Gautos žinutės";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
 <h2>Gautos žinutės</h2>
 
 <a asp-action="Inbox">Inbox</a>
@@ -44,37 +45,55 @@
         {
             <tr>
                 <td>
-                    @if (item.Messages.AlreadyRead == 0)
+                    @if (item.AlreadyRead == 0)
                     {
                         <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
                     }
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Messages.UsersHasMessages.FirstOrDefault().Sender.UserName)
+                    @if (item.IsAdminMessage == 1)
+                    {
+                    <p>Administracija</p>
+                    }
+                    else {
+                        @Html.DisplayFor(modelItem => item.Messages.UsersHasMessages.FirstOrDefault().Sender.UserName)
+                    }
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Messages.DateSent)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Messages.Subject)
-                    
-                    @Html.ActionLink("Plačiau", "Details", new { id = item.MessagesId , option = "Inbox"})
-                    
+
+                    @Html.ActionLink("Plačiau", "Details", new { id = item.MessagesId, option = "Inbox" })
+
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Messages.Text)
                 </td>
                 <td>
-                    <a title="Atsakyti vartotojui" asp-area="" asp-controller="Messages" asp-action="Create" asp-route-recipientID="@item.SenderId">Atsakyti</a>
-
+                    @if (item.IsAdminMessage == 1)
+                    {
+                        <button disabled title="Atsakyti negalima">Atsakyti</button>
+                    }
+                    else
+                    {
+                        <button title="Atsakyti vartotojui" onclick="location.href='@Url.Action("Create", "Messages", new { recipientID = item.SenderId, subject= item.Messages.Subject})'">Atsakyti</button>
+                    }
+                    @*
+                        <a title="Atsakyti vartotojui" asp-area="" asp-controller="Messages" asp-action="Create" asp-route-recipientID="@item.SenderId">Atsakyti</a>
+                    *@
                 </td>
-                <td>
-                    <form asp-action="Delete">
-                        <input type="submit" value="" class="btn btn-danger" />
+    
+                    <td>
+    
+                        <form asp-action="Delete" asp-route-id="@item.Messages.Id" asp-route-sender_id="@item.Messages.UsersHasMessages.FirstOrDefault().Sender.Id" asp-route-recipient_id="@UserManager.GetUserId(User)">
+    
+                            <input type="submit" value="" class="btn btn-danger" />
                     </form>
                 </td>
                 <td>
-                    <form asp-action="MarkAsRead">
+                    <form asp-action="MarkAsRead" asp-route-id="@item.Messages.Id" asp-route-sender_id="@item.Messages.UsersHasMessages.FirstOrDefault().Sender.Id" asp-route-recipient_id="@UserManager.GetUserId(User)">
                         <input type="submit" value="" class="btn btn-danger" />
                     </form>
                 </td>

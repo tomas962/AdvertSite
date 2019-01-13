@@ -25,10 +25,19 @@ namespace AdvertSite.Controllers
         
         // GET: Listings
         [AllowAnonymous]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? id)
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).ToListAsync();/*(l => l.Verified == 1 && l.Display == 1).Include(l => l.Subcategory).Include(l => l.User)*/;
-            return View(await masterContext);
+            var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1);
+            if (id  != null )
+            {
+                if (Request.Query["type"].Equals("Category"))
+                    masterContext = masterContext.Where(l => l.Subcategory.Categoryid == id);
+
+                else if (Request.Query["type"].Equals("Subcategory"))
+                    masterContext = masterContext.Where(l => l.Subcategoryid == id);
+            }
+
+            return View(await masterContext.ToListAsync());
         }
         // GET: Uncomfirmed
         [Authorize(Roles = "Admin")]
@@ -59,7 +68,9 @@ namespace AdvertSite.Controllers
                 return NotFound();
             }
 
-            return View(listings);
+            var listingAndComment = new ListingAndComment { Listing = listings, Comment = new Comments() };
+
+            return View(listingAndComment);
         }
 
         // GET: Listings/Create
@@ -77,22 +88,39 @@ namespace AdvertSite.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles ="Admin,User")]
-        public async Task<IActionResult> Create([Bind("Id,Userid,Subcategoryid,Name,Description,Price,Quantity,Date,Verified,Display")] Listings listings)
+        public async Task<IActionResult> Create([Bind("Subcategoryid,Name,Description,Price,GoogleLatitude,GoogleLongitude,GoogleRadius")] ListingNewModel newListing)
         {
             if (ModelState.IsValid)
             {
+                Listings listings = new Listings()
+                {
+                    Subcategoryid = newListing.Subcategoryid,
+                    Name = newListing.Name,
+                    Description = newListing.Description,
+                    Price = newListing.Price,
+                    GoogleLatitude = newListing.GoogleLatitude,
+                    GoogleLongitude = newListing.GoogleLongitude,
+                    GoogleRadius = newListing.GoogleRadius * 1000
+                };
+
                 listings.Userid = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 listings.Date = DateTime.Now;
                 listings.Display = 1;
                 listings.Verified = 0;
+                /*
+                listings.GoogleLongitude = 0;// newListing.GoogleLongitude;
+                listings.GoogleLatitude = 0;// newListing.GoogleLatitude;
+                listings.GoogleRadius = 10000;// newListing.GoogleRadius;
+                */
                 _context.Add(listings);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Id", listings.Subcategoryid);
-            ViewData["Userid"] = new SelectList(_context.Users, "Id", "UserName", listings.Userid);
-            return View(listings);
+
+            ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Id");
+            ViewData["Userid"] = new SelectList(_context.Users, "Id", "UserName");
+            return View(newListing);
         }
 
         // GET: Listings/Edit/5
@@ -250,6 +278,13 @@ namespace AdvertSite.Controllers
             // Registracijoje veikia, cia error "Microsoft.AspNetCore.Mvc.ViewFeatures.Internal.TempDataSerializer.EnsureObjectCanBeSerialized(object item)"
             //TempData["Message"] = new MessageViewModel() { CssClassName = "alert-success", Title = "Operacija sėkminga", Message = "Skelbimas dabar matomas kitiems vartotojams" };
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ListingsJSON()
+        {
+            var listings = await _context.Listings.ToListAsync();
+            return Json(listings);
         }
 
         private bool ListingsExists(int id)

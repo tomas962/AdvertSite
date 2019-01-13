@@ -4,14 +4,16 @@ using AdvertSite.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AdvertSite.Migrations
 {
     [DbContext(typeof(advert_siteContext))]
-    partial class advert_siteContextModelSnapshot : ModelSnapshot
+    [Migration("20190113141355_OnDeleteCascadeComments")]
+    partial class OnDeleteCascadeComments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -477,8 +479,7 @@ namespace AdvertSite.Migrations
                     b.HasOne("AdvertSite.Models.Category", "Category")
                         .WithMany("Subcategory")
                         .HasForeignKey("Categoryid")
-                        .HasConstraintName("fk_Subcategory_Category1")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasConstraintName("fk_Subcategory_Category1");
                 });
 
             modelBuilder.Entity("AdvertSite.Models.UsersHasMessages", b =>

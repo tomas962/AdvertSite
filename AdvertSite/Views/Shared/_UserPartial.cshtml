@@ -32,8 +32,8 @@
 
 @if (User.Identity.IsAuthenticated)
 {
-    <li>
-        <a asp-controller="Messages" asp-action="Index">
+    <li class="nav-item">
+        <a class="nav-link" asp-controller="Messages" asp-action="Index">
             Pranešimai
             <span class="badge badge-light" id="unreadCount">
                 0

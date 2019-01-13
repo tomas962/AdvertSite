@@ -9,11 +9,11 @@
 
 @if (User.IsInRole("Admin"))
 {
-    <li>
-        <a asp-area="" asp-controller="Listings" asp-action="UncomfirmedListings">Skelbimu patvirtinimas</a>
+    <li class="nav-item">
+        <a class="nav-link" asp-area="" asp-controller="Listings" asp-action="UncomfirmedListings">Skelbimu patvirtinimas</a>
     </li>
-    <li>
-        <a asp-area="" asp-controller="Messages" asp-action="CreateAdmin">Žinutės visiem</a>
+    <li class="nav-item">
+        <a class="nav-link" asp-area="" asp-controller="Messages" asp-action="CreateAdmin">Žinutės visiem</a>
     </li>
 }
 else

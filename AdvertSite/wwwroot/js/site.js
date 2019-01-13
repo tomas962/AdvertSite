@@ -3,14 +3,11 @@
 
 // Write your JavaScript code.
 
-
-$(document).ready(() => {
-    if (window.location.href.includes("Listings/Details")) {
-        let vals = window.location.href.split("/");
-        let listingId = vals[vals.length - 1];
-        getComments(listingId);
-    }
-})
+if (window.location.href.includes("Listings/Details")) {
+    let vals = window.location.href.split("/");
+    let listingId = vals[vals.length - 1];
+    getComments(listingId).then((comments) => { $.ready.then(() => { appendComments(comments) }) });
+}
 
 
 function postComment(event) {
@@ -28,7 +25,7 @@ function postComment(event) {
         })
         .then((response) => {
             if (response.status == 200) {
-                getComments(listingId);
+                getComments(listingId).then((comments) => { $.ready.then(() => { appendComments(comments) }) });
             }
         })
         .catch(err => {
@@ -48,7 +45,7 @@ function deleteComment(event) {
         })
         .then(response => {
             if (response.status == 200) {
-                getComments(listingId);
+                getComments(listingId).then((comments) => { $.ready.then(() => { appendComments(comments) }) });
             }
         })
         .catch(err => {
@@ -57,37 +54,44 @@ function deleteComment(event) {
 }
 
 function getComments(listingId) {
-    fetch('/Comment/GetComments?' + $.param({
-        listingId: listingId
-        //__RequestVerificationToken: document.getElementsByName("__RequestVerificationToken")[0].value
-    }), {
-            credentials: 'include',
-            method: 'GET'
-        }
-    )
-        .then(response => {
-            if (response.status == 200) {
-                response.json()
-                    .then(comments => {
-                        let htmlString = "";
-                        comments.forEach((value) => {
-                            if (value.canDelete)
-                                htmlString += `<dt>${value.userName}</dt><dt>${value.date.split("T")[0] + " " + value.date.split("T")[1].substring(0,8)}</dt><dd>${value.text} <button class='btn btn-danger' onclick='deleteComment(event)' value='${value.id}'>Šalinti</button></dd>`;
-                            else
-                                htmlString += `<dt>${value.userName}</dt><dt>${value.date.split("T")[0] + " " + value.date.split("T")[1].substring(0, 8)}</dt><dd>${value.text} </dd>`;
-                        })
-
-                        
-                        let commList = document.getElementById('commentList');
-                        while (commList.firstChild) {
-                            commList.removeChild(commList.firstChild);
-                        }
-                        $("#comment-count").empty().append(comments.length);
-                        $("#commentList").append(htmlString);
-                    })
+    return new Promise((resolve, reject) => {
+        fetch('/Comment/GetComments?' + $.param({
+            listingId: listingId
+            //__RequestVerificationToken: document.getElementsByName("__RequestVerificationToken")[0].value
+        }), {
+                credentials: 'include',
+                method: 'GET'
             }
-        })
-        .catch(err => {
-            console.log(err);
-        })
+        )
+            .then(response => {
+                if (response.status == 200) {
+                    response.json()
+                        .then(comments => {
+                            resolve(comments);
+                        })
+                }
+            })
+            .catch(err => {
+                console.log(err);
+            })
+    });
+    
+}
+
+function appendComments(comments) {
+    let htmlString = "";
+    comments.forEach((value) => {
+        if (value.canDelete)
+            htmlString += `<dt>${value.userName}</dt><dt>${value.date.split("T")[0] + " " + value.date.split("T")[1].substring(0, 8)}</dt><dd>${value.text} <button class='btn btn-danger' onclick='deleteComment(event)' value='${value.id}'>Šalinti</button></dd>`;
+        else
+            htmlString += `<dt>${value.userName}</dt><dt>${value.date.split("T")[0] + " " + value.date.split("T")[1].substring(0, 8)}</dt><dd>${value.text} </dd>`;
+    })
+
+
+    let commList = document.getElementById('commentList');
+    while (commList.firstChild) {
+        commList.removeChild(commList.firstChild);
+    }
+    $("#comment-count").empty().append(comments.length);
+    $("#commentList").append(htmlString);
 }

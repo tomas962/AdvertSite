@@ -86,14 +86,15 @@ namespace AdvertSite.Models
                 entity.HasOne(d => d.Listing)
                     .WithMany(p => p.Comments)
                     .HasForeignKey(d => d.Listingid)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("fk_Comments_Listings11");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Comments)
                     .HasForeignKey(d => d.Userid)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("fk_Comments_Users11");
+
             });
 
             modelBuilder.Entity<ListingPictures>(entity =>
@@ -235,7 +236,7 @@ namespace AdvertSite.Models
                 entity.HasOne(d => d.Category)
                     .WithMany(p => p.Subcategory)
                     .HasForeignKey(d => d.Categoryid)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("fk_Subcategory_Category1");
             });
 

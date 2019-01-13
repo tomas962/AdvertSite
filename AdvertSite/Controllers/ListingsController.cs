@@ -28,14 +28,14 @@ namespace AdvertSite.Controllers
         public async Task<IActionResult> Index(int? id)
         {
             var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1);
-            if (id  != null )
-            {
-                if (Request.Query["type"].Equals("Category"))
-                    masterContext = masterContext.Where(l => l.Subcategory.Categoryid == id);
 
-                else if (Request.Query["type"].Equals("Subcategory"))
-                    masterContext = masterContext.Where(l => l.Subcategoryid == id);
-            }
+            if (Request.Query["type"].Equals("Category"))
+                masterContext = masterContext.Where(l => l.Subcategory.Categoryid == id);
+
+            else if (Request.Query["type"].Equals("Subcategory"))
+                masterContext = masterContext.Where(l => l.Subcategoryid == id);
+            else if (Request.Query["type"].Equals("Search"))
+                masterContext = masterContext.Where(l => l.Name.Contains(Request.Query["key"]) || l.Description.Contains(Request.Query["key"]));
 
             return View(await masterContext.ToListAsync());
         }

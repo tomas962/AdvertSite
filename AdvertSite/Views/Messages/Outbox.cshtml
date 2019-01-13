@@ -55,7 +55,14 @@
                     
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Messages.Text)
+                    @if (@item.Messages.Text.ToString().Length > 40)
+                    {
+                        <p style="overflow:hidden; word-wrap: break-word;">@item.Messages.Text.ToString().Substring(0, 40)...</p>
+                    }
+                    else
+                    {
+                        <p style="overflow:hidden; word-wrap: break-word;">@Html.DisplayFor(modelItem => item.Messages.Text)</p>
+                    }
                 </td>
                 <td>
                     <a title="Parašyti vartotojui" asp-area="" asp-controller="Messages" asp-action="Create" asp-route-recipientID="@item.RecipientId">Susisiekti</a>

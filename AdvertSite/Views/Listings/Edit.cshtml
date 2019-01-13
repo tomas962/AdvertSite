@@ -1,12 +1,12 @@
 ﻿@model AdvertSite.Models.Listings
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Skelbimo redagavimas";
 }
 
-<h2>Edit</h2>
+<h2>Redagavimas</h2>
 
-<h4>Listings</h4>
+<h4>Skelbimas</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -34,17 +34,172 @@
                 <input asp-for="Price" class="form-control" />
                 <span asp-validation-for="Price" class="text-danger"></span>
             </div>
+
+            <a onclick="removeMaps()" href="#"> Pašalinti žempėlapį</a>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-default" />
+                <label>Pridėti vietą</label>
+                <input type="checkbox" id="google-checkbox">
+            </div>
+
+            <input asp-for="GoogleLatitude" class="" id="google-latitude" hidden />
+            <input asp-for="GoogleLongitude" class="" id="google-longitude" hidden />
+
+            <div id="googleMaps" style="display: none">
+                <div class="form-group">
+                    <label asp-for="GoogleRadius" class="control-label"></label>
+                    <input asp-for="GoogleRadius" class="form-control" id="google-radius" />
+                    <span asp-validation-for="GoogleRadius" class="text-danger"></span>
+                </div>
+
+                <div id="map"></div>
+            </div>
+            <br />
+
+            <div class="form-group">
+                <input type="submit" value="Išsaugoti" class="btn btn-default border" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Atgal į skelbimų sąrašą</a>
 </div>
 
+<script>
+    $(document).ready(function () {
+        if (typeof $('#google-latitude').val() !== 'undefined' && typeof $('#google-longitude').val() !== 'undefined') {
+            $("#googleMaps").show();
+        }
+    })
+    @*
+        Paspaudus checkbox, atvaizduoti google maps
+    *@
+    $(document).ready(function () {
+        $("#google-checkbox").change(function () {
+            if ($(this).is(":checked")) {
+                $("#googleMaps").show();
+            }
+            else {
+                $("#googleMaps").hide();
+
+            }
+        });
+    });
+</script>
+<script>
+
+    var markersArray = [];      // stores markers
+    var circleArray = [];       // stores circles
+
+    function initMap() {
+        // The location of Uluru
+        var uluru = { lat: 54.902524819796795, lng: 23.939562501448336 };
+        // The map, centered at Uluru
+        var map = new google.maps.Map(
+            document.getElementById('map'), { zoom: 6, center: uluru });
+
+        if (typeof $('#google-latitude').val() !== 'undefined' && typeof $('#google-longitude').val() !== 'undefined') {
+            var LatLng = { lat: parseFloat($('#google-latitude').val()), lng: parseFloat($('#google-longitude').val()) };
+            var marker = new google.maps.Marker({
+                position: LatLng,
+                map: map,
+            });
+            var circle = new google.maps.Circle({
+                map: map,
+                center: LatLng,
+                radius: parseInt($('#google-radius').val()) * 1000,
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35,
+            });
+
+            markersArray.push(marker);
+            circleArray.push(circle);
+        }
+        // event listener for click. calls placeMarker Method
+        map.addListener('click', function (e) {
+            placeMarker(e.latLng, map);
+        });
+    }
+
+    function placeMarker(position, map) {
+        clearOverlays();    // clears all markers and circles
+
+        // creates a marker
+        var marker = new google.maps.Marker({
+            position: position,
+            map: map
+        });
+
+        //creates a circle
+        var circle = new google.maps.Circle({
+            map: map,
+            center: position,
+            radius: parseInt($('#google-radius').val()) * 1000,
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#FF0000',
+            fillOpacity: 0.35,
+        });
+
+        //adds a marker and a circle to array
+        markersArray.push(marker);
+        circleArray.push(circle);
+
+        // sets coordinates for form items
+        setCoordinates();
+        map.panTo(position);
+    }
+
+    // clears all markers and circles
+    function clearOverlays() {
+        for (var i = 0; i < markersArray.length; i++) {
+            markersArray[i].setMap(null);
+        }
+
+        markersArray.length = 0;
+
+        for (var i = 0; i < circleArray.length; i++) {
+            circleArray[i].setMap(null);
+        }
+
+        circleArray.length = 0;
+    }
+
+    // sets lng and lat to form items
+    function setCoordinates(position) {
+        console.log("Lat:" + markersArray[0].getPosition().lat() + ", Lng: " + markersArray[0].getPosition().lng());
+        $('#google-latitude').val(markersArray[0].getPosition().lat());
+        $('#google-longitude').val(markersArray[0].getPosition().lng());
+    }
+
+    function removeMaps() {
+        console.log("removed");
+        clearOverlays();
+        $('#google-latitude').val(null);
+        $('#google-longitude').val(null);
+        $('#google-radius').val(null);
+    }
+</script>
+
+<!--Load the API from the specified URL
+* The async attribute allows the browser to render the page while the API loads
+* The key parameter will contain your own API key (which is not needed for this tutorial)
+* The callback parameter executes the initMap() function
+-->
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
+</script>
+<style>
+    #map {
+        height: 400px;
+        width: 100%;
+    }
+</style>
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

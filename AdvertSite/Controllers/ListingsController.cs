@@ -155,7 +155,7 @@ namespace AdvertSite.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles ="Admin,User")]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Userid,Subcategoryid,Name,Description,Price,Quantity,Date,Verified,Display")] Listings listings)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Userid,Subcategoryid,Name,Description,Price,Quantity,Date,Verified,Display,GoogleLatitude,GoogleLongitude,GoogleRadius")] Listings listings)
         {
             if (!listings.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)) && !this.User.IsInRole("Admin"))
             {
@@ -171,6 +171,7 @@ namespace AdvertSite.Controllers
             {
                 try
                 {
+                    listings.Display = 1;
                     listings.Verified = 0;
                     _context.Update(listings);
                     await _context.SaveChangesAsync();

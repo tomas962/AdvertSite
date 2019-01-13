@@ -1,12 +1,10 @@
 ﻿@model AdvertSite.Models.CreateMessageModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Nauja žinutė";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<h2>Create</h2>
-
-<h4>Messages</h4>
+<h4>Nauja žinutė</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -34,7 +32,7 @@
                 </div>*@
             <input asp-for="RecipientId" class="" hidden />
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-default" />
+                <input type="submit" value="Create" class="btn btn-default border" />
             </div>
         </form>
     </div>

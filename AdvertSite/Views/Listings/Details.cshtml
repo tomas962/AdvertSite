@@ -2,11 +2,8 @@
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<ApplicationUser> UserManager
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Skelbimo informacija";
 }
-
-<h2>Details</h2>
-
 <div>
     <h4>Listings</h4>
     <hr />
@@ -21,7 +18,7 @@
             @Html.DisplayNameFor(model => model.Listing.Description)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Listing.Description)
+            <p style="overflow:hidden; word-wrap: break-word;"> @Html.DisplayFor(model => model.Listing.Description)</p>
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Listing.Price)
@@ -30,34 +27,16 @@
             @Html.DisplayFor(model => model.Listing.Price)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Listing.Quantity)
+            @Html.DisplayNameFor(model => model.Listing.Subcategory.Category)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Listing.Quantity)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Listing.Date)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Listing.Date)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Listing.Verified)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Listing.Verified)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Listing.Display)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Listing.Display)
+            @Html.DisplayFor(model => model.Listing.Subcategory.Category.Name)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Listing.Subcategory)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Listing.Subcategory.Id)
+            @Html.DisplayFor(model => model.Listing.Subcategory.Name)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Listing.User)
@@ -145,18 +124,16 @@
             });
         // The marker, positioned at Uluru
         var marker = new google.maps.Marker({ position: uluru, map: map });
-        var mapRadius = 0;
-        if (@Model.Listing.GoogleRadius != null)
-            mapRadius = @Model.Listing.GoogleRadius;
+
         var circle = new google.maps.Circle({
+            map: map,
+            center: uluru,
+            radius:  @Model.Listing.GoogleRadius * 1000,  
             strokeColor: '#FF0000',
             strokeOpacity: 0.8,
             strokeWeight: 2,
             fillColor: '#FF0000',
             fillOpacity: 0.35,
-            map: map,
-            center: uluru,
-            radius: @Model.Listing.GoogleRadius
         });
     }
 </script>

@@ -1,6 +1,6 @@
 ﻿@model AdvertSite.Models.ListingAndComment
 @using Microsoft.AspNetCore.Identity
-@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> signInManager
 @{
     ViewData["Title"] = "Details";
 }
@@ -8,7 +8,7 @@
 <h2>Details</h2>
 
 <div>
-    <h4>Listings</h4>
+    <h4 id="listings">Listings</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>
@@ -96,15 +96,19 @@
 <div>
     <h4>Komentarai</h4>
     <dl class="dl-horizontal" id="commentList"></dl>
-    <form onsubmit="return postComment(event)" method="post">
+    @if (signInManager.IsSignedIn(User))
+    {
+        <form onsubmit="return postComment(event)" method="post">
 
-        <div class="form-group">
-            <label asp-for="Comment.Text" class="control-label">Jūsų komentaras</label>
-            <textarea asp-for="Comment.Text" id="Comment.Text" class="form-control"></textarea>
-            <span asp-validation-for="Comment.Text" class="text-danger"></span>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
+            <div class="form-group">
+                <label asp-for="Comment.Text" class="control-label">Jūsų komentaras</label>
+                <textarea asp-for="Comment.Text" id="Comment.Text" class="form-control"></textarea>
+                <span asp-validation-for="Comment.Text" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    }
+
 
 </div>
 <div>

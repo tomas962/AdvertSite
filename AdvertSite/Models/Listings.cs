@@ -27,6 +27,7 @@ namespace AdvertSite.Models
         [DisplayName("Kaina")]
         public double Price { get; set; }
         public int Quantity { get; set; }
+        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:g}")]
         public DateTime Date { get; set; }
         public short? Verified { get; set; }
         public short? Display { get; set; }

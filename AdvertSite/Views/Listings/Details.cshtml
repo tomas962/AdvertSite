@@ -5,7 +5,10 @@
     ViewData["Title"] = "Skelbimo informacija";
 }
 <div>
-    <h4 id="listings">Listings</h4>
+    <div>
+        <a href='javascript:history.go(-1)'> Atgal</a>
+    </div>
+    <h4 id="listings">Skelbimo informacija</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>
@@ -42,7 +45,7 @@
             @Html.DisplayNameFor(model => model.Listing.User)
         </dt>
         <dd>
-            <a asp-area="" asp-controller="User" asp-action="Details" asp-route-id="@Model.Listing.User.Id">@Html.DisplayFor(model => model.Listing.User.Email)</a>
+            <a asp-area="" asp-controller="User" asp-action="Details" asp-route-id="@Model.Listing.User.Id">@Html.DisplayFor(model => model.Listing.User.UserName)</a>
         </dd>
         <dt>
 
@@ -84,16 +87,11 @@
                 <textarea asp-for="Comment.Text" id="Comment.Text" class="form-control"></textarea>
                 <span asp-validation-for="Comment.Text" class="text-danger"></span>
             </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class="btn btn-primary">Rašyti</button>
         </form>
     }
 
 
-</div>
-<div>
-    @*<a asp-controller="Comment" asp-action="Create" asp-route-id="@Model.Listing.Id">Rašyti komentarą</a> |*@
-    <a asp-action="Edit" asp-route-id="@Model.Listing.Id">Edit</a> |
-    <a href='javascript:history.go(-1)'> Atgal</a>
 </div>
 
 

@@ -92,12 +92,9 @@
                         <a title="Atsakyti vartotojui" asp-area="" asp-controller="Messages" asp-action="Create" asp-route-recipientID="@item.SenderId">Atsakyti</a>
                     *@
                 </td>
-    
-                    <td>
-    
-                        <form asp-action="Delete" asp-route-id="@item.Messages.Id" asp-route-sender_id="@item.Messages.UsersHasMessages.FirstOrDefault().Sender.Id" asp-route-recipient_id="@UserManager.GetUserId(User)">
-    
-                            <input type="submit" value="Šalinti " class="btn btn-outline-danger" />
+                <td>
+                    <form asp-action="Delete" asp-route-id="@item.Messages.Id" asp-route-sender_id="@item.Messages.UsersHasMessages.FirstOrDefault().Sender.Id" asp-route-recipient_id="@UserManager.GetUserId(User)">
+                        <input type="submit" value="Šalinti " class="btn btn-outline-danger" />
                     </form>
                 </td>
                 <td>

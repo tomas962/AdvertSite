@@ -9,6 +9,7 @@ using AdvertSite.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using System.IO;
 
 namespace AdvertSite.Controllers
 {
@@ -88,7 +89,7 @@ namespace AdvertSite.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles ="Admin,User")]
-        public async Task<IActionResult> Create([Bind("Subcategoryid,Name,Description,Price,GoogleLatitude,GoogleLongitude,GoogleRadius")] ListingNewModel newListing)
+        public async Task<IActionResult> Create([Bind("Subcategoryid,Name,Description,Price,GoogleLatitude,GoogleLongitude,GoogleRadius,ListingPictures")] ListingNewModel newListing)
         {
             if (ModelState.IsValid)
             {
@@ -113,7 +114,37 @@ namespace AdvertSite.Controllers
                 listings.GoogleLatitude = 0;// newListing.GoogleLatitude;
                 listings.GoogleRadius = 10000;// newListing.GoogleRadius;
                 */
+
+
+       
+
                 _context.Add(listings);
+                await _context.SaveChangesAsync();
+
+                foreach (var picture in newListing.ListingPictures)
+                {
+                    if (picture.Length > 0)
+                    {
+                        var pic = new ListingPictures { ListingId = listings.Id };
+                        _context.Add(pic);
+                        await _context.SaveChangesAsync();
+
+                        string[] filenameAndExtension = picture.FileName.Split('.');
+                        filenameAndExtension[0] = pic.PictureId.ToString();
+
+                        string fileName = filenameAndExtension[0] + "." + filenameAndExtension[1];
+
+                        string path = "UserPictures" + "\\" + fileName;
+                        path = Path.GetFullPath(path);
+
+                        pic.FileName = fileName;
+                        _context.ListingPictures.Update(pic);
+                        using (var stream = new FileStream(path, FileMode.Create))
+                        {                           
+                            await picture.CopyToAsync(stream);
+                        }
+                    }
+                }
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }

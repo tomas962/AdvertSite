@@ -78,12 +78,10 @@
 
 <script type="text/javascript">
     let category = localStorage.getItem("category");
-    localStorage.removeItem("category");
     if (category !== null) {
         $("#listings").empty().append(category)
     }
     let subcategory = localStorage.getItem("subcategory");
-    localStorage.removeItem("subcategory");
     if (subcategory !== null) {
         $("#listings").append(" -> " + subcategory);
     }

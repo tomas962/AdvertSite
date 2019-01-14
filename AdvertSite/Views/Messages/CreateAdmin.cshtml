@@ -1,11 +1,8 @@
 ﻿@model AdvertSite.Models.CreateMessageModel
 @{
-    ViewData["Title"] = "CreateAdmin";
+    ViewData["Title"] = "Žinutė visiems";
 }
-
-<h2>CreateAdmin</h2>
-
-<h4>Messages</h4>
+<h4>Siūsti žinutę visiem vartotojams</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -29,7 +26,7 @@
             <input asp-for="RecipientId" class="" hidden />
 
             <div class="form-group">
-            <input type="submit" value="Create" class="btn btn-default" />
+            <input type="submit" value="Siūsti" class="btn btn-default border" />
 
             </div>
         </form>

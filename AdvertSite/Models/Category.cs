@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace AdvertSite.Models
 {
@@ -11,6 +12,7 @@ namespace AdvertSite.Models
         }
 
         public int Id { get; set; }
+        [DisplayName("Kategorija")]
         public string Name { get; set; }
 
         public ICollection<Subcategory> Subcategory { get; set; }

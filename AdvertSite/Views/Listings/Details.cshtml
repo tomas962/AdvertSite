@@ -2,13 +2,13 @@
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<ApplicationUser> signInManager
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Skelbimo informacija";
 }
-
-<h2>Details</h2>
-
 <div>
-    <h4 id="listings">Listings</h4>
+    <div>
+        <a href='javascript:history.go(-1)'> Atgal</a>
+    </div>
+    <h4 id="listings">Skelbimo informacija</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>
@@ -21,7 +21,7 @@
             @Html.DisplayNameFor(model => model.Listing.Description)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Listing.Description)
+            <p style="overflow:hidden; word-wrap: break-word;"> @Html.DisplayFor(model => model.Listing.Description)</p>
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Listing.Price)
@@ -30,40 +30,22 @@
             @Html.DisplayFor(model => model.Listing.Price)
         </dd>
         <dt>
-            @Html.DisplayNameFor(model => model.Listing.Quantity)
+            @Html.DisplayNameFor(model => model.Listing.Subcategory.Category)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Listing.Quantity)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Listing.Date)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Listing.Date)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Listing.Verified)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Listing.Verified)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Listing.Display)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Listing.Display)
+            @Html.DisplayFor(model => model.Listing.Subcategory.Category.Name)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Listing.Subcategory)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Listing.Subcategory.Id)
+            @Html.DisplayFor(model => model.Listing.Subcategory.Name)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.Listing.User)
         </dt>
         <dd>
-            <a asp-area="" asp-controller="User" asp-action="Details" asp-route-id="@Model.Listing.User.Id">@Html.DisplayFor(model => model.Listing.User.Email)</a>
+            <a asp-area="" asp-controller="User" asp-action="Details" asp-route-id="@Model.Listing.User.Id">@Html.DisplayFor(model => model.Listing.User.UserName)</a>
         </dd>
         <dt>
 
@@ -105,16 +87,11 @@
                 <textarea asp-for="Comment.Text" id="Comment.Text" class="form-control"></textarea>
                 <span asp-validation-for="Comment.Text" class="text-danger"></span>
             </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class="btn btn-primary">Rašyti</button>
         </form>
     }
 
 
-</div>
-<div>
-    @*<a asp-controller="Comment" asp-action="Create" asp-route-id="@Model.Listing.Id">Rašyti komentarą</a> |*@
-    <a asp-action="Edit" asp-route-id="@Model.Listing.Id">Edit</a> |
-    <a href='javascript:history.go(-1)'> Atgal</a>
 </div>
 
 
@@ -149,18 +126,16 @@
             });
         // The marker, positioned at Uluru
         var marker = new google.maps.Marker({ position: uluru, map: map });
-        var mapRadius = 0;
-        if (@Model.Listing.GoogleRadius != null)
-            mapRadius = @Model.Listing.GoogleRadius;
+
         var circle = new google.maps.Circle({
+            map: map,
+            center: uluru,
+            radius:  @Model.Listing.GoogleRadius * 1000,  
             strokeColor: '#FF0000',
             strokeOpacity: 0.8,
             strokeWeight: 2,
             fillColor: '#FF0000',
             fillOpacity: 0.35,
-            map: map,
-            center: uluru,
-            radius: @Model.Listing.GoogleRadius
         });
     }
 </script>

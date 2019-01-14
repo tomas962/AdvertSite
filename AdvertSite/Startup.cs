@@ -57,7 +57,8 @@ namespace AdvertSite
                 options.AllowAreas = true;
                 options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
                 options.Conventions.AuthorizeAreaPage("Identity", "/Account/Logout");
-            });
+            })
+            .AddSessionStateTempDataProvider();
 
             services.ConfigureApplicationCookie(options =>
             {
@@ -66,7 +67,7 @@ namespace AdvertSite
                 options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
             });
 
-            
+            services.AddSession();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -86,7 +87,7 @@ namespace AdvertSite
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
-
+            app.UseSession();
             app.UseAuthentication();
 
 

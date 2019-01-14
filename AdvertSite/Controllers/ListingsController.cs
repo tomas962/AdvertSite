@@ -76,11 +76,12 @@ namespace AdvertSite.Controllers
 
         // GET: Listings/Create
         [Authorize(Roles ="Admin,User")]
-        public IActionResult Create()
+        public IActionResult Create(ListingNewModel listingModel)
         {
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Name");
             ViewData["Userid"] = new SelectList(_context.Users, "Id", "UserName");
-            return View();
+            ModelState.Clear();
+            return View(listingModel);
         }
 
         // POST: Listings/Create
@@ -89,7 +90,8 @@ namespace AdvertSite.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles ="Admin,User")]
-        public async Task<IActionResult> Create([Bind("Subcategoryid,Name,Description,Price,GoogleLatitude,GoogleLongitude,GoogleRadius,ListingPictures")] ListingNewModel newListing)
+        [ActionName("Create")]
+        public async Task<IActionResult> CreatePost([Bind("Subcategoryid,Name,Description,Price,GoogleLatitude,GoogleLongitude,GoogleRadius,ListingPictures")] ListingNewModel newListing)
         {
             if (ModelState.IsValid)
             {
@@ -121,27 +123,45 @@ namespace AdvertSite.Controllers
                 _context.Add(listings);
                 await _context.SaveChangesAsync();
 
-                foreach (var picture in newListing.ListingPictures)
+                if (newListing.ListingPictures != null && newListing.ListingPictures.Count() > 4) //jei nuotrauku daugiau nei 4 atmetam 
                 {
-                    if (picture.Length > 0)
+                    TempData["PictureError"] = "Nuotraukų negali būti daugiau nei 4!";
+                    return RedirectToAction(nameof(Create),newListing);
+                }
+
+                if (newListing.ListingPictures != null)
+                {
+                    foreach (var picture in newListing.ListingPictures)
                     {
-                        var pic = new ListingPictures { ListingId = listings.Id };
-                        _context.Add(pic);
-                        await _context.SaveChangesAsync();
+                        if (picture.Length > 10000000) //jei dydid didesnis uz 10MB atmeta
+                        {
+                            TempData["PictureError"] = "Nuotraukos dydis negali būti didesnis nei 10Mb!";
+                            return RedirectToAction(nameof(Create), newListing);
+                        }
+                    }
 
-                        string[] filenameAndExtension = picture.FileName.Split('.');
-                        filenameAndExtension[0] = pic.PictureId.ToString();
+                    foreach (var picture in newListing.ListingPictures)
+                    {
+                        if (picture.Length > 0)
+                        {
+                            var pic = new ListingPictures { ListingId = listings.Id };
+                            _context.Add(pic);
+                            await _context.SaveChangesAsync();
 
-                        string fileName = filenameAndExtension[0] + "." + filenameAndExtension[1];
+                            string[] filenameAndExtension = picture.FileName.Split('.');
+                            filenameAndExtension[0] = pic.PictureId.ToString();
 
-                        string path = "UserPictures" + "\\" + fileName;
-                        path = Path.GetFullPath(path);
+                            string fileName = filenameAndExtension[0] + "." + filenameAndExtension[1];
 
-                        pic.FileName = fileName;
-                        _context.ListingPictures.Update(pic);
-                        using (var stream = new FileStream(path, FileMode.Create))
-                        {                           
-                            await picture.CopyToAsync(stream);
+                            string path = "UserPictures" + "\\" + fileName;
+                            path = Path.GetFullPath(path);
+
+                            pic.FileName = fileName;
+                            _context.ListingPictures.Update(pic);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await picture.CopyToAsync(stream);
+                            }
                         }
                     }
                 }

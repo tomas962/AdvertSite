@@ -57,7 +57,7 @@ namespace AdvertSite.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UncomfirmedListings()
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == 0).ToListAsync();
+            var masterContext = _context.Listings.Where(l => l.Verified == 0).Include(l => l.ListingPictures).ToListAsync();
             return View(await masterContext);
         }
 

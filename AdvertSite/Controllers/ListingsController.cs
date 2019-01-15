@@ -187,6 +187,7 @@ namespace AdvertSite.Controllers
                     }
                 }
                 await _context.SaveChangesAsync();
+                TempData["Success"] = "Jūsų skelbimas bus patalpintas, kai administratorius jį patikrins";
                 return RedirectToAction(nameof(Index));
             }
 

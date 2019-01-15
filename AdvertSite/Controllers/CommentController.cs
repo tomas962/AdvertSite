@@ -134,6 +134,7 @@ namespace AdvertSite.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetComments(int listingId)
         {
             var comments = await _context.Comments.Include(c => c.User).Where(c => c.Listingid == listingId).ToListAsync();

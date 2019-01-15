@@ -110,7 +110,7 @@ namespace AdvertSite.Models
                 entity.HasOne(d => d.Listing)
                     .WithMany(p => p.ListingPictures)
                     .HasForeignKey(d => d.ListingId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("fk_Listing_pictures_Listings1");
             });
 

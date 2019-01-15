@@ -20,7 +20,13 @@
             @Html.DisplayNameFor(model => model.Text)
         </dt>
         <dd>
-            @Html.DisplayFor(model => model.Text)
+            <div class="row">
+                <div class="col">
+                    <p>
+                        @Html.DisplayFor(model => model.Text)
+                    </p>
+                </div>
+            </div>
         </dd>
         @if (Context.Request.Query["option"] == "Inbox")
         {

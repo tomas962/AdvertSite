@@ -36,18 +36,18 @@ namespace AdvertSite.Areas.Identity.Pages.Account.Manage
         {
             [Required]
             [DataType(DataType.Password)]
-            [Display(Name = "Current password")]
+            [Display(Name = "Dabartinis slaptažodis")]
             public string OldPassword { get; set; }
 
             [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [StringLength(100, ErrorMessage = "{0} turi būti bent {2} ir ne daugiau kaip {1} simbolių ilgio.", MinimumLength = 6)]
             [DataType(DataType.Password)]
-            [Display(Name = "New password")]
+            [Display(Name = "Naujas slaptažodis")]
             public string NewPassword { get; set; }
 
             [DataType(DataType.Password)]
-            [Display(Name = "Confirm new password")]
-            [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
+            [Display(Name = "Patvirtinti naują slaptažodį")]
+            [Compare("NewPassword", ErrorMessage = "Slaptažodžiai nesutampa")]
             public string ConfirmPassword { get; set; }
         }
 
@@ -93,7 +93,7 @@ namespace AdvertSite.Areas.Identity.Pages.Account.Manage
 
             await _signInManager.RefreshSignInAsync(user);
             _logger.LogInformation("User changed their password successfully.");
-            StatusMessage = "Your password has been changed.";
+            StatusMessage = "Jūsų slaptažodis pakeistas sėkmingai";
 
             return RedirectToPage();
         }

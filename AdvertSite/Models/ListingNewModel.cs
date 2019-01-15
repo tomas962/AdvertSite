@@ -21,12 +21,12 @@ namespace AdvertSite.Models
         [DisplayName("Aprašymas")]
         [Required]
         public string Description { get; set; }
-        [DisplayName("Kaina")]
+        [DisplayName("Kaina (€)")]
         public double Price { get; set; }
 
         public double? GoogleLatitude { get; set; }
         public double? GoogleLongitude { get; set; }
-        [DisplayName("Radius (km)")]
+        [DisplayName("Skersmuo (km)")]
         [DataType("Double")]
         public double? GoogleRadius { get; set; }
 

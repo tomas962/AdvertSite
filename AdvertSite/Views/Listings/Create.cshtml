@@ -50,9 +50,8 @@
             </div>
 
             <div class="form-group">
-                <label asp-for="ListingPictures" class="control-label"></label>
-                <input type="file" asp-for="ListingPictures" multiple />
-                <span asp-validation-for="ListingPictures" class="text-danger"></span>
+                <label asp-for="ListingPictures" class="control-label">Pasirinkite nuotraukas (daugiausiai 4)...</label>
+                <input type="file" class="form-control-file mb-2" asp-for="ListingPictures" multiple >
             </div>
 
             @if (Model.GoogleLatitude != null)

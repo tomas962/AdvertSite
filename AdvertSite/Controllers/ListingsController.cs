@@ -11,6 +11,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using System.IO;
 using Microsoft.AspNetCore.Http;
+using System.Text.RegularExpressions;
+using System.Drawing;
 
 namespace AdvertSite.Controllers
 {
@@ -29,16 +31,25 @@ namespace AdvertSite.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index(int? id)
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1);
+            var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).Include(l => l.ListingPictures);
 
             if (Request.Query["type"].Equals("Category"))
-                masterContext = masterContext.Where(l => l.Subcategory.Categoryid == id);
+                masterContext = masterContext
+                    .Where(l => l.Subcategory.Categoryid == id)
+                    .Include(l => l.ListingPictures);
             else if (Request.Query["type"].Equals("Subcategory"))
-                masterContext = masterContext.Where(l => l.Subcategoryid == id);
+                masterContext = masterContext
+                    .Where(l => l.Subcategoryid == id)
+                    .Include(l => l.ListingPictures);
+
             else if (Request.Query["type"].Equals("Search"))
-                masterContext = masterContext.Where(l => l.Name.Contains(Request.Query["key"]) || l.Description.Contains(Request.Query["key"]));
+                masterContext = masterContext
+                    .Where(l => l.Name.Contains(Request.Query["key"]) || l.Description.Contains(Request.Query["key"]))
+                    .Include(l => l.ListingPictures);
             else if (Request.Query["type"].Equals("MyListings"))
-                masterContext = _context.Listings.Where(l => l.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)));
+                masterContext = _context.Listings
+                    .Where(l => l.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)))
+                    .Include(l => l.ListingPictures);
 
             return View(await masterContext.ToListAsync());
         }
@@ -46,7 +57,7 @@ namespace AdvertSite.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UncomfirmedListings()
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == 0).ToListAsync();
+            var masterContext = _context.Listings.Where(l => l.Verified == 0).Include(l => l.ListingPictures).ToListAsync();
             return View(await masterContext);
         }
 
@@ -60,6 +71,7 @@ namespace AdvertSite.Controllers
             }
 
             var listings = await _context.Listings
+                .Include(l => l.ListingPictures)
                 .Include(l => l.Subcategory)
                 .Include(l => l.User)
                 .Include(l => l.Subcategory.Category)
@@ -136,9 +148,15 @@ namespace AdvertSite.Controllers
                 {
                     foreach (var picture in newListing.ListingPictures)
                     {
-                        if (picture.Length > 10000000) //jei dydid didesnis uz 10MB atmeta
+                        if (picture.Length > ImageMaximumBytes) //jei dydid didesnis uz 10MB atmeta
                         {
                             TempData["PictureError"] = "Nuotraukos dydis negali būti didesnis nei 10Mb!";
+                            return RedirectToAction(nameof(Create), newListing);
+                        }
+
+                        if (!IsImage(picture))
+                        {
+                            TempData["PictureError"] = "Failas nėra nuotrauka!";
                             return RedirectToAction(nameof(Create), newListing);
                         }
                     }
@@ -147,7 +165,7 @@ namespace AdvertSite.Controllers
                     {
                         if (picture.Length > 0)
                         {
-                            var pic = new ListingPictures { ListingId = listings.Id };
+                            var pic = new ListingPictures { ListingId = listings.Id , ContentType = picture.ContentType};
                             _context.Add(pic);
                             await _context.SaveChangesAsync();
 
@@ -169,6 +187,7 @@ namespace AdvertSite.Controllers
                     }
                 }
                 await _context.SaveChangesAsync();
+                TempData["Success"] = "Jūsų skelbimas bus patalpintas, kai administratorius jį patikrins";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -342,11 +361,90 @@ namespace AdvertSite.Controllers
             return Json(listings);
         }
 
+        #region HelperMethods
+        //--------------------------------------------------------HELPER METHODS---------------------------------------------------
         private bool ListingsExists(int id)
         {
             return _context.Listings.Any(e => e.Id == id);
         }
 
-        
+
+        public const int ImageMaximumBytes = 10000000;
+
+        public static bool IsImage(IFormFile postedFile)
+        {
+            //-------------------------------------------
+            //  Check the image mime types
+            //-------------------------------------------
+            if (postedFile.ContentType.ToLower() != "image/jpg" &&
+                        postedFile.ContentType.ToLower() != "image/jpeg" &&
+                        postedFile.ContentType.ToLower() != "image/pjpeg" &&
+                        postedFile.ContentType.ToLower() != "image/gif" &&
+                        postedFile.ContentType.ToLower() != "image/x-png" &&
+                        postedFile.ContentType.ToLower() != "image/png")
+            {
+                return false;
+            }
+
+            //-------------------------------------------
+            //  Check the image extension
+            //-------------------------------------------
+            if (Path.GetExtension(postedFile.FileName).ToLower() != ".jpg"
+                && Path.GetExtension(postedFile.FileName).ToLower() != ".png"
+                && Path.GetExtension(postedFile.FileName).ToLower() != ".gif"
+                && Path.GetExtension(postedFile.FileName).ToLower() != ".jpeg")
+            {
+                return false;
+            }
+
+            //-------------------------------------------
+            //  Attempt to read the file and check the first bytes
+            //-------------------------------------------
+            try
+            {
+                if (!postedFile.OpenReadStream().CanRead)
+                {
+                    return false;
+                }
+
+
+                byte[] buffer = new byte[ImageMaximumBytes];
+                postedFile.OpenReadStream().Read(buffer, 0, ImageMaximumBytes);
+                string content = System.Text.Encoding.UTF8.GetString(buffer);
+                if (Regex.IsMatch(content, @"<script|<html|<head|<title|<body|<pre|<table|<a\s+href|<img|<plaintext|<cross\-domain\-policy",
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Multiline))
+                {
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            //-------------------------------------------
+            //  Try to instantiate new Bitmap, if .NET will throw exception
+            //  we can assume that it's not a valid image
+            //-------------------------------------------
+
+            try
+            {
+                using (var bitmap = new System.Drawing.Bitmap(postedFile.OpenReadStream()))
+                {
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            finally
+            {
+                postedFile.OpenReadStream().Position = 0;
+            }
+
+            return true;
+        } 
+        #endregion
+
     }
 }

@@ -4,14 +4,16 @@ using AdvertSite.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AdvertSite.Migrations
 {
     [DbContext(typeof(advert_siteContext))]
-    partial class advert_siteContextModelSnapshot : ModelSnapshot
+    [Migration("20190115132822_PictureContentType")]
+    partial class PictureContentType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -126,9 +128,7 @@ namespace AdvertSite.Migrations
             modelBuilder.Entity("AdvertSite.Models.ListingPictures", b =>
                 {
                     b.Property<int>("PictureId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("picture_id")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnName("picture_id");
 
                     b.Property<int>("ListingId")
                         .HasColumnName("Listing_id");
@@ -449,8 +449,7 @@ namespace AdvertSite.Migrations
                     b.HasOne("AdvertSite.Models.Listings", "Listing")
                         .WithMany("ListingPictures")
                         .HasForeignKey("ListingId")
-                        .HasConstraintName("fk_Listing_pictures_Listings1")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasConstraintName("fk_Listing_pictures_Listings1");
                 });
 
             modelBuilder.Entity("AdvertSite.Models.Listings", b =>

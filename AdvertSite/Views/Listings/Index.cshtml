@@ -1,13 +1,17 @@
 ﻿@model IEnumerable<AdvertSite.Models.Listings>
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> signInManager
 @{
     ViewData["Title"] = "Skelbimai";
 }
 <h2 id="listings">Skelbimai</h2>
-<p>
-    <a asp-action="Create">Naujas skelbimas</a>
-</p>
+@if (signInManager.IsSignedIn(User))
+{
+    <p>
+        <a asp-action="Create">Naujas skelbimas</a>
+    </p>
+}
 <div class="container">
     @foreach (var item in Model)
     {
@@ -24,9 +28,22 @@
                             <small class="text-muted">Kaina: @Html.DisplayFor(modelItem => item.Price) Eur</small>
                         </div>
 
-                        <div class="col-lg-3">
-                            <img src="http://webpub.jacieyang.com/resource/p2t/horizontal/ex.gif" alt="Temp" height="135" width="180">
-                        </div>
+                        @if (item.ListingPictures.Count > 0)
+                        {
+                            @*
+                                Picture goes here 
+
+                                <div class="col-lg-3">
+                                    <img src="~/images/@item.ListingPictures.FirstOrDefault().ToString()" alt="Temp" height="135" width="180">
+                                </div>
+                            *@
+                        }
+                        else
+                        {
+                            <div class="col-lg-3">
+                                <img src="~/images/notFound.jpg" alt="Temp" height="135" width="180">
+                            </div>
+                        }
 
                         <div class="col-lg-6">
                             @if (@item.Description.ToString().Length > 200)
@@ -88,5 +105,5 @@
         $("#listings").append(" -> " + subcategory);
     }
 
-    
+
 </script>

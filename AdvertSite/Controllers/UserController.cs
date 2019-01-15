@@ -9,6 +9,7 @@ using AdvertSite.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Web;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AdvertSite.Controllers
 {
@@ -71,7 +72,7 @@ namespace AdvertSite.Controllers
         //            RegistrationDate = DateTime.Now,
         //            Userlevel = true
         //        };
-               
+
         //        if (_context.Users.Any(i => i.UserName == user.UserName))
         //        {
         //            TempData["Message"] = new MessageViewModel() { CssClassName = "alert-danger", Title = "Operacija nesėkminga", Message = "Vartotojo vardas užimtas" };
@@ -128,6 +129,7 @@ namespace AdvertSite.Controllers
 
 
         // GET: Users/Details/RandomString
+        [AllowAnonymous]
         public async Task<IActionResult> Details(string id)
         {
            if (id == null)

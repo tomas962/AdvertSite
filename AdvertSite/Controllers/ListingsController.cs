@@ -33,11 +33,12 @@ namespace AdvertSite.Controllers
 
             if (Request.Query["type"].Equals("Category"))
                 masterContext = masterContext.Where(l => l.Subcategory.Categoryid == id);
-
             else if (Request.Query["type"].Equals("Subcategory"))
                 masterContext = masterContext.Where(l => l.Subcategoryid == id);
             else if (Request.Query["type"].Equals("Search"))
                 masterContext = masterContext.Where(l => l.Name.Contains(Request.Query["key"]) || l.Description.Contains(Request.Query["key"]));
+            else if (Request.Query["type"].Equals("MyListings"))
+                masterContext = _context.Listings.Where(l => l.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)));
 
             return View(await masterContext.ToListAsync());
         }

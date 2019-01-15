@@ -1,6 +1,7 @@
 ﻿@model AdvertSite.Models.ListingAndComment
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<ApplicationUser> signInManager
+@inject UserManager<ApplicationUser> UserManager
 @{
     ViewData["Title"] = "Skelbimo informacija";
 }
@@ -8,9 +9,30 @@
     <div>
         <a href='javascript:history.go(-1)'> Atgal</a>
     </div>
+
     <h4 id="listings">Skelbimo informacija</h4>
     <hr />
+
     <dl class="dl-horizontal">
+        @if (Model.Listing.Userid.Equals(UserManager.GetUserId(User)) || User.IsInRole("Admin"))
+        {
+            @if (Model.Listing.Verified == 0)
+            {
+                <p>Patvirtintas: Ne</p>
+            }
+            else
+            {
+                <p>Patvirtintas: Taip</p>
+            }
+            @if (Model.Listing.Display == 0)
+            {
+                <p>Skelbimas rodomas: Ne</p>
+            }
+            else
+            {
+                <p>Skelbimas rodomas: Taip</p>
+            }
+        }
         <dt>
             @Html.DisplayNameFor(model => model.Listing.Name)
         </dt>
@@ -47,12 +69,16 @@
         <dd>
             <a asp-area="" asp-controller="User" asp-action="Details" asp-route-id="@Model.Listing.User.Id">@Html.DisplayFor(model => model.Listing.User.UserName)</a>
         </dd>
-        <dt>
+        @if (signInManager.IsSignedIn(User) && !Model.Listing.Userid.Equals(UserManager.GetUserId(User)))
+        {
+            <dt>
 
-        </dt>
-        <dd>
-            <a asp-area="" asp-controller="Messages" asp-action="Create" asp-route-recipientID=@Model.Listing.User.Id>Siųsti žinutę skelbimo autoriui</a>
-        </dd>
+            </dt>
+
+            <dd>
+                <a asp-area="" asp-controller="Messages" asp-action="Create" asp-route-recipientID=@Model.Listing.User.Id>Siųsti žinutę skelbimo autoriui</a>
+            </dd>
+        }
         <dt>
             Lokacija
         </dt>
@@ -96,11 +122,11 @@
 
 
 
-@* 
+@*
     *
     *
     *
-    *   GOOGLE MAPS 
+    *   GOOGLE MAPS
     *
     *
     *
@@ -130,7 +156,7 @@
         var circle = new google.maps.Circle({
             map: map,
             center: uluru,
-            radius:  @Model.Listing.GoogleRadius * 1000,  
+            radius:  @Model.Listing.GoogleRadius * 1000,
             strokeColor: '#FF0000',
             strokeOpacity: 0.8,
             strokeWeight: 2,

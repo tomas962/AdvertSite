@@ -39,26 +39,26 @@
             </div>
         </div>
     </nav>
-    <partial name="_SearchBarPartial" />
-    <br />
-    <br />
-    @*
-        <partial name="_CookieConsentPartial" />
 
-    *@
-    @if (TempData["Error"] != null)
+
+
+    <partial name="_CookieConsentPartial" />
+    <partial name="_SearchBarPartial" />
+
+    @if (TempData.ContainsKey("Error"))
     {
         <div class="alert alert-danger">
             <p align="center"><strong>Klaida:</strong> @TempData["Error"].ToString()</p>
         </div>
     }
-    @if (ViewData["Success"] != null)
+    @if (TempData.ContainsKey("Success"))
     {
         <div class="alert alert-success">
-            <p align="center"><strong>Operacija sėkminga:</strong> @ViewData["Success"].ToString()</p>
+            <p align="center"><strong>Operacija sėkminga:</strong> @TempData["Success"].ToString()</p>
         </div>
     }
     <div class="container body-content">
+
         @RenderBody()
         <hr />
         <footer>

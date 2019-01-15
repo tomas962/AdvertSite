@@ -57,7 +57,7 @@ namespace AdvertSite.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UncomfirmedListings()
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == 0).ToListAsync();
+            var masterContext = _context.Listings.Where(l => l.Verified == 0).Include(l => l.ListingPictures).ToListAsync();
             return View(await masterContext);
         }
 
@@ -187,6 +187,7 @@ namespace AdvertSite.Controllers
                     }
                 }
                 await _context.SaveChangesAsync();
+                TempData["Success"] = "Jūsų skelbimas bus patalpintas, kai administratorius jį patikrins";
                 return RedirectToAction(nameof(Index));
             }
 

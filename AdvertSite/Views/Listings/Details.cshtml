@@ -77,9 +77,9 @@
             @foreach (var item in Model.Listing.ListingPictures)
             {
 
-                <div class="col-lg-3">
+                <div class="col-lg-3 border">
                     <a href="/ListingPictures/GetPicture/@item.PictureId">
-                        <img src="/ListingPictures/GetPicture/@item.PictureId" width="280" />
+                        <img src="/ListingPictures/GetPicture/@item.PictureId" width="260" />
                     </a>
                 </div>
 
@@ -174,7 +174,7 @@
         var circle = new google.maps.Circle({
             map: map,
             center: uluru,
-            radius:  @Model.Listing.GoogleRadius * 1000,
+            radius:  @Model.Listing.GoogleRadius,
             strokeColor: '#FF0000',
             strokeOpacity: 0.8,
             strokeWeight: 2,

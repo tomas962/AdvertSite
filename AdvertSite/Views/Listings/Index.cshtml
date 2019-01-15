@@ -28,7 +28,7 @@
                             <small class="text-muted">Kaina: @Html.DisplayFor(modelItem => item.Price) Eur</small>
                         </div>
 
-                        <div class="col-lg-3">
+                        <div class="col-lg-3 border">
                             @if (item.ListingPictures.FirstOrDefault() != null)
                             {
                                 <img src="/ListingPictures/GetPicture/@item.ListingPictures.FirstOrDefault().PictureId" alt="Temp" height="135" width="180">

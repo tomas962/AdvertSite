@@ -74,6 +74,7 @@
     $(document).ready(function () {
         if (typeof $('#google-latitude').val() !== 'undefined' && typeof $('#google-longitude').val() !== 'undefined') {
             $("#googleMaps").show();
+            $('#google-radius').val($('#google-radius').val() / 1000);
         }
     })
     @*
@@ -112,7 +113,7 @@
             var circle = new google.maps.Circle({
                 map: map,
                 center: LatLng,
-                radius: parseInt($('#google-radius').val()) * 1000,
+                radius: parseInt($('#google-radius').val()),
                 strokeColor: '#FF0000',
                 strokeOpacity: 0.8,
                 strokeWeight: 2,

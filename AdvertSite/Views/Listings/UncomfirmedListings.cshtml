@@ -21,22 +21,17 @@
                     </div>
 
 
-                    @if (item.ListingPictures.Count > 0)
-                    {
-                        @*
-                            Picture goes here
-
-                            <div class="col-lg-3">
-                                <img src="~/images/@item.ListingPictures.FirstOrDefault().ToString()" alt="Temp" height="135" width="180">
-                            </div>
-                        *@
-                    }
-                    else
-                    {
-                        <div class="col-lg-3">
+                    <div class="col-lg-3">
+                        @if (item.ListingPictures.FirstOrDefault() != null)
+                        {
+                            <img src="/ListingPictures/GetPicture/@item.ListingPictures.FirstOrDefault().PictureId" alt="Temp" height="135" width="180">
+                        }
+                        else
+                        {
                             <img src="~/images/notFound.jpg" alt="Temp" height="135" width="180">
-                        </div>
-                    }
+                        }
+
+                    </div>
 
                     <div class="col-lg-6">
                         @if (@item.Description.ToString().Length > 200)

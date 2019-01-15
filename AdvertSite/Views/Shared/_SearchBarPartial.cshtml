@@ -1,13 +1,15 @@
 ﻿<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <form class="form-inline mx-auto" method="get" asp-action="Index" asp-controller="Listings" asp-route-test="asd">
-        @if (User.Identity.IsAuthenticated)
-        {
-            <a class="btn btn-outline-success mr-sm-2" asp-action="Create" asp-controller="Listings">Patalpinti skelbimą</a>
-        }
-        <input type="text" class="form-control mr-sm-2" value="" name="key" placeholder="Ieškoti" style="min-width: 420px" />
-        <span>
-            <button type="submit" class="btn btn-outline-success my-2 my-sm-0" />Ieškoti</button>
-        </span>
-        <input type="hidden" value="Search" name="type" />
+        <div class="container">
+            @if (User.Identity.IsAuthenticated)
+            {
+                <a class="btn btn-outline-success mr-sm-2" asp-action="Create" asp-controller="Listings">Patalpinti skelbimą</a>
+            }
+            <input type="text" class="form-control mr-sm-2" value="" name="key" placeholder="Ieškoti" style="min-width: 420px" />
+            <span>
+                <button type="submit" class="btn btn-outline-success my-2 my-sm-0" />Ieškoti</button>
+            </span>
+            <input type="hidden" value="Search" name="type" />
+        </div>
     </form>
 </nav>

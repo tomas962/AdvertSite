@@ -24,18 +24,6 @@ namespace AdvertSite.Controllers
             _userManager = userManager;
         }
 
-        // GET: Comment
-        public ActionResult Index()
-        {
-            return View();
-        }
-
-        // GET: Comment/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
-
         // GET: Comment/Create/4
         [Authorize(Roles = "Admin,User")]
         public IActionResult Create(int id)
@@ -100,29 +88,6 @@ namespace AdvertSite.Controllers
 
             // turetu sito nepasiekti
             return RedirectToAction("Index", "Home");
-        }
-
-        // GET: Comment/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
-
-        // POST: Comment/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                // TODO: Add update logic here
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
         }
 
         // GET: Comment/Delete/5

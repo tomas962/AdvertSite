@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Encodings.Web;
@@ -29,8 +30,6 @@ namespace AdvertSite.Areas.Identity.Pages.Account.Manage
             //_emailSender = emailSender;
         }
 
-        public string Username { get; set; }
-
         public bool IsEmailConfirmed { get; set; }
 
         [TempData]
@@ -41,13 +40,23 @@ namespace AdvertSite.Areas.Identity.Pages.Account.Manage
 
         public class InputModel
         {
+            [DisplayName("Vartotojo vardas")]
+            public string Username { get; set; }
+
             [Required]
             [EmailAddress]
+            [DisplayName("El. Paštas")]
             public string Email { get; set; }
 
             [Phone]
-            [Display(Name = "Phone number")]
+            [Display(Name = "Telefono Numeris")]
             public string PhoneNumber { get; set; }
+
+            [DisplayName("Gyvenamasis miestas")]
+            public string City { get; set; }
+
+            [DisplayName("Namų adresas")]
+            public string HomeAdress { get; set; }
         }
 
         public async Task<IActionResult> OnGetAsync()
@@ -62,13 +71,17 @@ namespace AdvertSite.Areas.Identity.Pages.Account.Manage
             var email = await _userManager.GetEmailAsync(user);
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
             var registrationDate = user.RegistrationDate;
+            var city = user.City;
+            var homeAdress = user.HomeAdress;
 
-            Username = userName;
 
             Input = new InputModel
             {
+                Username = userName,
                 Email = email,
-                PhoneNumber = phoneNumber
+                PhoneNumber = phoneNumber,
+                City = city,
+                HomeAdress = homeAdress
             };
 
             IsEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
@@ -78,6 +91,7 @@ namespace AdvertSite.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnPostAsync()
         {
+          
             if (!ModelState.IsValid)
             {
                 return Page();
@@ -87,6 +101,23 @@ namespace AdvertSite.Areas.Identity.Pages.Account.Manage
             if (user == null)
             {
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            }
+            var userExists = await _userManager.FindByNameAsync(Input.Username);
+            if (userExists == null)
+            {
+                if (!Input.Username.Equals(_userManager.GetUserName(User)))
+                {
+                    var setUsernameResult = await _userManager.SetUserNameAsync(user, Input.Username);
+                    if (!setUsernameResult.Succeeded)
+                    {
+                        var userId = await _userManager.GetUserIdAsync(user);
+                        throw new InvalidOperationException($"Unexpected error occurred setting username for user with ID '{userId}'.");
+                    }
+                }
+            }
+            else
+            {
+                StatusMessage = "Vartotojo vardas jau užimtas.";
             }
 
             var email = await _userManager.GetEmailAsync(user);
@@ -111,8 +142,12 @@ namespace AdvertSite.Areas.Identity.Pages.Account.Manage
                 }
             }
 
+            user.City = Input.City;
+            user.HomeAdress = Input.HomeAdress;
+            await _userManager.UpdateAsync(user);
+
             await _signInManager.RefreshSignInAsync(user);
-            StatusMessage = "Your profile has been updated";
+            StatusMessage = "Profilis atnaujintas!";
             return RedirectToPage();
         }
 

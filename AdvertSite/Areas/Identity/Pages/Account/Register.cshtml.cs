@@ -42,19 +42,22 @@ namespace AdvertSite.Areas.Identity.Pages.Account
         public class InputModel
         {
             [Required]
+            [Display(Name = "Vartotojo vardas")]
+            public string Username { get; set; }
+            [Required]
             [EmailAddress]
-            [Display(Name = "Email")]
+            [Display(Name = "El. paštas")]
             public string Email { get; set; }
 
             [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [StringLength(100, ErrorMessage = "Slaptažodis turi buti nuo {2} iki {1} ilgio.", MinimumLength = 6)]
             [DataType(DataType.Password)]
-            [Display(Name = "Password")]
+            [Display(Name = "Slaptažodis")]
             public string Password { get; set; }
 
             [DataType(DataType.Password)]
-            [Display(Name = "Confirm password")]
-            [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+            [Display(Name = "Patvirtinti slaptažodį")]
+            [Compare("Password", ErrorMessage = "Slatapžodžiai nesutampa")]
             public string ConfirmPassword { get; set; }
         }
 
@@ -68,7 +71,13 @@ namespace AdvertSite.Areas.Identity.Pages.Account
             returnUrl = returnUrl ?? Url.Content("~/");
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = Input.Email, Email = Input.Email, RegistrationDate = DateTime.Now };
+                var userExists = await _userManager.FindByNameAsync(Input.Username);
+                if (userExists != null)
+                {
+                    ModelState.AddModelError(string.Empty, "Vartotojo vardas jau užimtas");
+                    return Page();
+                }
+                var user = new ApplicationUser { UserName = Input.Username, Email = Input.Email, RegistrationDate = DateTime.Now };
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {

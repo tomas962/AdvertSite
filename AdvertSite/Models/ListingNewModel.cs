@@ -1,12 +1,15 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace AdvertSite.Models
 {
+    [NotMapped]
     public class ListingNewModel
     {
         [DisplayName("Kategorija")]
@@ -26,5 +29,8 @@ namespace AdvertSite.Models
         [DisplayName("Radius (km)")]
         [DataType("Double")]
         public double? GoogleRadius { get; set; }
+
+        [DisplayName("Nuotrauka")]
+        public IEnumerable<IFormFile> ListingPictures { get; set; }
     }
 }

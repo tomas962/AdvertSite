@@ -95,3 +95,8 @@ function appendComments(comments) {
     $("#comment-count").empty().append(comments.length);
     $("#commentList").append(htmlString);
 }
+
+$("#nav-listings").click((e) => {
+    localStorage.removeItem("category");
+    localStorage.removeItem("subcategory");
+});

@@ -1,24 +1,10 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Pagrindinis puslapis";
     int counter = 0;
     var categories = Model as List<Category>;
 }
-@*<div class="row">
-    @foreach (var category in Model)
-    {
-        <div class="col-lg-3">
-            <a style="font-size: large" asp-action="Index" asp-controller="Listings" asp-route-id="@category.Id" asp-route-type="Category">@category.Name</a>
-            <br />
-            @foreach (var subcategory in category.Subcategory)
-            {
-                <a asp-action="Index" asp-controller="Listings" asp-route-id="@subcategory.Id" asp-route-type="Subcategory">@subcategory.Name</a>
-                <br />
-            }
-            <br />
-        </div>
-    };
-</div>*@
 
+<h1 class="h1">Skelbimų kategorijos</h1>
 @while (true)
 {
     if (counter >= Model.Count)
@@ -33,18 +19,28 @@
                 break;
             }
             <div class="col-sm-3 category-list-block">
-                    <a style="font-size: large" asp-action="Index" asp-controller="Listings" asp-route-id="@Model[counter].Id" asp-route-type="Category">@Model[counter].Name</a>
-                    <ul>
-                        @foreach (var subCat in Model[counter].Subcategory)
-                        {
-                            <li>
-                                <a asp-action="Index" asp-controller="Listings" asp-route-id="@subCat.Id" asp-route-type="Subcategory">@subCat.Name</a>
-                            </li>
-                        }
-                    </ul>
+                <h3><a class="cat" style="font-size: large" asp-action="Index" asp-controller="Listings" asp-route-id="@Model[counter].Id" asp-route-type="Category">@Model[counter].Name</a></h3>
+                <ul>
+                    @foreach (var subCat in Model[counter].Subcategory)
+                    {
+                        <li>
+                            <a class="subcat" asp-action="Index" asp-controller="Listings" asp-route-id="@subCat.Id" asp-route-type="Subcategory">@subCat.Name</a>
+                        </li>
+                    }
+                </ul>
             </div>
             counter++;
         }
     </div>
 }
 
+
+<script type="text/javascript">
+    $(".cat").click((e) => {
+        localStorage.setItem("category", e.target.innerHTML);
+    })
+    $(".subcat").click((e) => {
+        localStorage.setItem("category", e.target.parentElement.parentElement.parentElement.getElementsByClassName("cat")[0].innerHTML);
+        localStorage.setItem("subcategory", e.target.innerHTML)
+    })
+</script>

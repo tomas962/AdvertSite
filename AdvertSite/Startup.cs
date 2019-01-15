@@ -33,8 +33,15 @@ namespace AdvertSite
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
+                options.CheckConsentNeeded = context => false; //TODO change to true (but session wont work)
                 options.MinimumSameSitePolicy = SameSiteMode.None;
+            });
+
+            services.AddDistributedMemoryCache();
+
+            services.AddSession(options =>
+            {
+                options.Cookie.HttpOnly = true;
             });
 
             services.AddDbContext<advert_siteContext>(options =>
@@ -44,6 +51,7 @@ namespace AdvertSite
                 .AddEntityFrameworkStores<advert_siteContext>()
                 .AddDefaultTokenProviders();
 
+
             services.AddMvc(config =>
             {
                 var policy = new AuthorizationPolicyBuilder()
@@ -51,14 +59,14 @@ namespace AdvertSite
                                  .Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
             })
-            .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+            .SetCompatibilityVersion(CompatibilityVersion.Version_2_1).AddSessionStateTempDataProvider()
             .AddRazorPagesOptions(options =>
             {
                 options.AllowAreas = true;
                 options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
                 options.Conventions.AuthorizeAreaPage("Identity", "/Account/Logout");
-            })
-            .AddSessionStateTempDataProvider();
+            });
+            
 
             services.ConfigureApplicationCookie(options =>
             {
@@ -67,7 +75,7 @@ namespace AdvertSite
                 options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
             });
 
-            services.AddSession();
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

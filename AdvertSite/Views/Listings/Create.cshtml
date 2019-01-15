@@ -3,10 +3,10 @@
 @{
     ViewData["Title"] = "Naujas skelbimas";
 }
-    @if (TempData.ContainsKey("PictureError"))
+    @if (ViewData.ContainsKey("PictureError"))
     {
         <div class="alert alert-danger" role="alert">
-            @TempData["PictureError"]
+            @ViewData["PictureError"]
         </div>
     }
 <h2>Naujas skelbimas</h2>

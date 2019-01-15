@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace AdvertSite.Controllers
 {
@@ -80,6 +81,7 @@ namespace AdvertSite.Controllers
         {
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Name");
             ViewData["Userid"] = new SelectList(_context.Users, "Id", "UserName");
+            if (TempData.ContainsKey("PictureError")) ViewData["PictureError"] = TempData["PictureError"];
             ModelState.Clear();
             return View(listingModel);
         }
@@ -125,7 +127,7 @@ namespace AdvertSite.Controllers
 
                 if (newListing.ListingPictures != null && newListing.ListingPictures.Count() > 4) //jei nuotrauku daugiau nei 4 atmetam 
                 {
-                    TempData["PictureError"] = "Nuotraukų negali būti daugiau nei 4!";
+                    TempData["PictureError"] = "Nuotraukų negali būti daugiau nei 4!";                    
                     return RedirectToAction(nameof(Create),newListing);
                 }
 

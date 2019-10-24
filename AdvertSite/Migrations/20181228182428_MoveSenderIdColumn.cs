@@ -18,6 +18,10 @@ namespace AdvertSite.Migrations
                 name: "PK_Messages",
                 table: "Messages");
 
+            migrationBuilder.DropIndex(
+                name: "IX_Messages_sender_id",
+                table: "Messages"
+                );
 
             migrationBuilder.DropColumn(
                 name: "sender_id",

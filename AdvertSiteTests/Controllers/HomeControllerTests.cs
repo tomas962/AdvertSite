@@ -14,18 +14,18 @@ namespace AdvertSiteTests.Controllers
     {
         private MockRepository mockRepository;
         private Mock<advert_siteContext> mockadvert_siteContext;
-        private DbContextOptions<advert_siteContext> dbOptions;
-
+        private advert_siteContext dbContext;
         // Do "global" initialization here; Called before every test method. SetUp()
         public HomeControllerTests()
         {
             //this.mockRepository = new MockRepository(MockBehavior.Strict);
             this.mockRepository = new MockRepository(MockBehavior.Default);
 
-            dbOptions = new DbContextOptionsBuilder<advert_siteContext>()
+            var dbOptions = new DbContextOptionsBuilder<advert_siteContext>()
             .UseInMemoryDatabase(databaseName: "test")
             .Options;
 
+            dbContext = new advert_siteContext(dbOptions);
             this.mockadvert_siteContext = this.mockRepository.Create<advert_siteContext>();
         }
 
@@ -33,19 +33,18 @@ namespace AdvertSiteTests.Controllers
         public void Dispose()
         {
             this.mockRepository.VerifyAll();
+            dbContext.Dispose();
         }
 
         private HomeController CreateHomeController()
         {
-            return new HomeController(
-                this.mockadvert_siteContext.Object);
+            return new HomeController(this.mockadvert_siteContext.Object);
         }
 
         [Fact]
         public async Task Index_StateUnderTest_ExpectedBehavior()
         {
             // Arrange
-            var dbContext = new advert_siteContext(dbOptions);
             var homeController = new HomeController(dbContext);
 
             // Act
@@ -108,49 +107,5 @@ namespace AdvertSiteTests.Controllers
             }
         }
 
-        [Fact]
-        public void About_StateUnderTest_ExpectedBehaviorAsync()
-        {
-            Assert.True(false);
-        }
-
-        [Fact]
-        public void Contact_StateUnderTest_ExpectedBehavior()
-        {
-            // Arrange
-            var homeController = this.CreateHomeController();
-
-            // Act
-            var result = homeController.Contact();
-
-            // Assert
-            Assert.True(false);
-        }
-
-        [Fact]
-        public void Privacy_StateUnderTest_ExpectedBehavior()
-        {
-            // Arrange
-            var homeController = this.CreateHomeController();
-
-            // Act
-            var result = homeController.Privacy();
-
-            // Assert
-            Assert.True(false);
-        }
-
-        [Fact]
-        public void Error_StateUnderTest_ExpectedBehavior()
-        {
-            // Arrange
-            var homeController = this.CreateHomeController();
-
-            // Act
-            var result = homeController.Error();
-
-            // Assert
-            Assert.True(false);
-        }
     }
 }

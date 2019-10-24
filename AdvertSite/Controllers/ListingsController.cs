@@ -13,6 +13,7 @@ using System.IO;
 using Microsoft.AspNetCore.Http;
 using System.Text.RegularExpressions;
 using System.Drawing;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace AdvertSite.Controllers
 {
@@ -26,64 +27,41 @@ namespace AdvertSite.Controllers
             
         }
 
-        
+
         // GET: Listings
         [AllowAnonymous]
-        public async Task<IActionResult> Index(int? id)
+        public ViewResult Index(int? id)
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).Include(l => l.ListingPictures);
 
-            if (Request.Query["type"].Equals("Category"))
-                masterContext = masterContext
-                    .Where(l => l.Subcategory.Categoryid == id)
-                    .Include(l => l.ListingPictures);
-            else if (Request.Query["type"].Equals("Subcategory"))
-                masterContext = masterContext
-                    .Where(l => l.Subcategoryid == id)
-                    .Include(l => l.ListingPictures);
+            var list = GetCategoriesAndSubCategories(Request.Query["type"], Request.Query["key"], id);
 
-            else if (Request.Query["type"].Equals("Search"))
-                masterContext = masterContext
-                    .Where(l => l.Name.Contains(Request.Query["key"]) || l.Description.Contains(Request.Query["key"]))
-                    .Include(l => l.ListingPictures);
-            else if (Request.Query["type"].Equals("MyListings"))
-                masterContext = _context.Listings
-                    .Where(l => l.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)))
-                    .Include(l => l.ListingPictures);
-
-            return View(await masterContext.ToListAsync());
+            return View(list);
         }
+
         // GET: Uncomfirmed
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UncomfirmedListings()
+        public IActionResult UncomfirmedListings()
         {
-            var masterContext = _context.Listings.Where(l => l.Verified == 0).Include(l => l.ListingPictures).ToListAsync();
-            return View(await masterContext);
+            return View(GetUncomfirmedListings());
         }
 
         // GET: Listings/Details/5
         [AllowAnonymous]
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var listings = await _context.Listings
-                .Include(l => l.ListingPictures)
-                .Include(l => l.Subcategory)
-                .Include(l => l.User)
-                .Include(l => l.Subcategory.Category)
-                .Include(l => l.Comments)
-                .ThenInclude((Comments c) => c.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (listings == null)
+            var listing = GetListingWithAdditionalInformation((int)id);
+
+            if (listing == null)
             {
                 return NotFound();
             }
 
-            var listingAndComment = new ListingAndComment { Listing = listings, Comment = new Comments() };
+            var listingAndComment = new ListingAndComment { Listing = listing, Comment = new Comments() };
 
             return View(listingAndComment);
         }
@@ -198,14 +176,14 @@ namespace AdvertSite.Controllers
 
         // GET: Listings/Edit/5
         [Authorize(Roles ="Admin,User")]
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var listings = await _context.Listings.FindAsync(id);
+            var listings = GetListingWithoutAdditionalsInfomration((int)id);
 
             if (listings == null)
             {
@@ -278,10 +256,7 @@ namespace AdvertSite.Controllers
                 return NotFound();
             }
 
-            var listings = await _context.Listings
-                .Include(l => l.Subcategory)
-                .Include(l => l.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var listings = GetListingWithAdditionalInformation((int)id);
             if (listings == null)
             {
                 return NotFound();
@@ -363,11 +338,61 @@ namespace AdvertSite.Controllers
 
         #region HelperMethods
         //--------------------------------------------------------HELPER METHODS---------------------------------------------------
+
+        public List<Listings> GetCategoriesAndSubCategories(String queryType, String queryKey, int? id)
+        {
+            IIncludableQueryable<Listings, ICollection<ListingPictures>> result = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).Include(l => l.ListingPictures);
+            if (queryType != null)
+            {
+                if (queryType.Equals("Category"))
+                    result = result
+                       .Where(l => l.Subcategory.Categoryid == id)
+                       .Include(l => l.ListingPictures);
+                else if (queryType.Equals("Subcategory"))
+                    result = result
+                        .Where(l => l.Subcategoryid == id)
+                        .Include(l => l.ListingPictures);
+                else if (queryType.Equals("Search"))
+                    if (queryKey != null)
+                        result = result
+                            .Where(l => l.Name.Contains(queryKey) || l.Description.Contains(queryKey))
+                            .Include(l => l.ListingPictures);
+                    else if (queryType.Equals("MyListings"))
+                        result = _context.Listings
+                            .Where(l => l.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)))
+                            .Include(l => l.ListingPictures);
+            }
+
+
+            return result.ToList();
+        }
+
+        public Listings GetListingWithAdditionalInformation(int id)
+        {
+            return _context.Listings
+                .Include(l => l.ListingPictures)
+                .Include(l => l.Subcategory)
+                .Include(l => l.User)
+                .Include(l => l.Subcategory.Category)
+                .Include(l => l.Comments)
+                .ThenInclude((Comments c) => c.User)
+                .FirstOrDefault(m => m.Id == id);
+        }
+
+        public Listings GetListingWithoutAdditionalsInfomration(int id)
+        {
+            return _context.Listings.Find(id);
+        }
+
+        public List<Listings> GetUncomfirmedListings()
+        {
+            return _context.Listings.Where(l => l.Verified == 0).Include(l => l.ListingPictures).ToList();
+        }
+
         private bool ListingsExists(int id)
         {
             return _context.Listings.Any(e => e.Id == id);
         }
-
 
         public const int ImageMaximumBytes = 10000000;
 

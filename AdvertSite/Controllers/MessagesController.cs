@@ -36,59 +36,35 @@ namespace AdvertSite.Controllers
         // GET: Messages/Inbox
         [Authorize(Roles = "Admin,User")]
         [HttpGet]
-        public async Task<IActionResult> Inbox()
+        public IActionResult Inbox()
         {
             var advert_siteContext = GetUserInbox(_userManager.GetUserId(User));
 
-            return View(await advert_siteContext.ToListAsync());
-        }
-        public IOrderedQueryable<UsersHasMessages> GetUserInbox(String id)
-        {
-            return _context.UsersHasMessages
-                   .Where(m => m.RecipientId == id && m.IsDeleted == 0)
-                   .Include(m => m.Messages)
-                   .ThenInclude(m => m.UsersHasMessages)
-                   .ThenInclude(userMessages => userMessages.Sender)
-                   .OrderByDescending(m => m.Messages.DateSent);
+            return View(advert_siteContext);
         }
 
         // GET: MEssages/OutBox
         [Authorize(Roles = "Admin,User")]
         [HttpGet]
-        public async Task<IActionResult> Outbox()
+        public IActionResult Outbox()
         {
             var advert_siteContext = GetUserOutbox(_userManager.GetUserId(User));
 
 
-            return View(await advert_siteContext.ToListAsync());
-        }
-
-        public IOrderedQueryable<UsersHasMessages> GetUserOutbox(String id)
-        {
-                return  _context.UsersHasMessages
-                .Where(m => m.SenderId == id && m.IsDeleted == 0 && m.IsAdminMessage == 0)
-                .Include(m => m.Recipient)
-                .Include(m => m.Messages)
-                .ThenInclude(m => m.UsersHasMessages)
-                .ThenInclude(userMessages => userMessages.Recipient)
-                .OrderByDescending(m => m.Messages.DateSent);
+            return View(advert_siteContext);
         }
 
         // GET: Messages/Details/5
         [Authorize(Roles = "Admin,User")]
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var messages = await _context.Messages
-                .Include(m => m.UsersHasMessages)
-                .ThenInclude(m => m.Sender)
-                .Include(m => m.UsersHasMessages)
-                .ThenInclude(m => m.Recipient)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var messages = GetMessage((int)id);
+
             if (messages == null)
             {
                 return NotFound();
@@ -98,10 +74,10 @@ namespace AdvertSite.Controllers
         }
         // GET: Messages/CreateAdmin
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateAdmin()
+        public IActionResult CreateAdmin()
         {
 
-            var recipient = await _context.Users.FirstOrDefaultAsync(user => user.Id == Request.Query["recipientId"]);
+            var recipient = GetRecipientUser(Request.Query["recipientId"]);
             var model = new CreateMessageModel { RecipientId = Request.Query["recipientId"], Recipient = recipient };
             return View(model);
         }
@@ -110,7 +86,7 @@ namespace AdvertSite.Controllers
 
         // GET: Messages/Create
         [Authorize(Roles = "Admin,User")]
-        public async Task<IActionResult> Create()
+        public IActionResult Create()
         {
             // Jeigu vartotojas bando rasyti zinute sau
             if (Request.Query["recipientId"].Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)))
@@ -119,7 +95,7 @@ namespace AdvertSite.Controllers
             }
 
 
-            var recipient = await _context.Users.FirstOrDefaultAsync(user => user.Id == Request.Query["recipientId"]);
+            var recipient = GetRecipientUser(Request.Query["recipientId"]);
             var model = new CreateMessageModel { RecipientId = Request.Query["recipientId"], Recipient = recipient, Message = new Messages() };
             model.Message.Subject = Request.Query["subject"];
             return View(model);
@@ -228,7 +204,38 @@ namespace AdvertSite.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost]
+        #region Helper Methods
+
+        public List<UsersHasMessages> GetUserInbox(String userId)
+        {
+            return _context.UsersHasMessages
+                   .Where(m => m.RecipientId == userId && m.IsDeleted == 0)
+                   .Include(m => m.Messages)
+                   .ThenInclude(m => m.UsersHasMessages)
+                   .ThenInclude(userMessages => userMessages.Sender)
+                   .OrderByDescending(m => m.Messages.DateSent).ToList();
+        }
+
+        public List<UsersHasMessages> GetUserOutbox(String userId)
+        {
+            return _context.UsersHasMessages
+            .Where(m => m.SenderId == userId && m.IsDeleted == 0 && m.IsAdminMessage == 0)
+            .Include(m => m.Recipient)
+            .Include(m => m.Messages)
+            .ThenInclude(m => m.UsersHasMessages)
+            .ThenInclude(userMessages => userMessages.Recipient)
+            .OrderByDescending(m => m.Messages.DateSent).ToList();
+        }
+
+        public Messages GetMessage(int id)
+        {
+            return _context.Messages
+                .Include(m => m.UsersHasMessages)
+                .ThenInclude(m => m.Sender)
+                .Include(m => m.UsersHasMessages)
+                .ThenInclude(m => m.Recipient)
+                .FirstOrDefault(m => m.Id == id);
+        }
         public int UpdateUnreadMessageCount()
         {
             int count = _context.UsersHasMessages
@@ -238,11 +245,11 @@ namespace AdvertSite.Controllers
             return count;
         }
 
-
-        public Boolean getTrue()
+        public ApplicationUser GetRecipientUser(String id)
         {
-            return true;
+            return _context.Users.FirstOrDefault(user => user.Id.Equals(id));
         }
+        #endregion
 
         //// GET: Messages/Delete/5
         //public async Task<IActionResult> Delete(int? id)

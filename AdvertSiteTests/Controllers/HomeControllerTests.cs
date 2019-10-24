@@ -1,8 +1,10 @@
 using AdvertSite.Controllers;
 using AdvertSite.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -11,14 +13,18 @@ namespace AdvertSiteTests.Controllers
     public class HomeControllerTests : IDisposable
     {
         private MockRepository mockRepository;
-
         private Mock<advert_siteContext> mockadvert_siteContext;
+        private DbContextOptions<advert_siteContext> dbOptions;
 
         // Do "global" initialization here; Called before every test method. SetUp()
         public HomeControllerTests()
         {
             //this.mockRepository = new MockRepository(MockBehavior.Strict);
             this.mockRepository = new MockRepository(MockBehavior.Default);
+
+            dbOptions = new DbContextOptionsBuilder<advert_siteContext>()
+            .UseInMemoryDatabase(databaseName: "test")
+            .Options;
 
             this.mockadvert_siteContext = this.mockRepository.Create<advert_siteContext>();
         }
@@ -39,13 +45,38 @@ namespace AdvertSiteTests.Controllers
         public async Task Index_StateUnderTest_ExpectedBehavior()
         {
             // Arrange
-            var homeController = this.CreateHomeController();
+            var dbContext = new advert_siteContext(dbOptions);
+            var homeController = new HomeController(dbContext);
 
             // Act
-            var result = await homeController.Index();
+            dbContext.Add(new Category() {
+                Name = "TestCat",
+                Subcategory = new List<Subcategory>()
+                {
+                    new Subcategory()
+                    {
+                        Name = "TestSub"
+                    }
+                }
+            });
+            dbContext.Add(new Category()
+            {
+                Name = "TestCat2",
+                Subcategory = new List<Subcategory>()
+                {
+                    new Subcategory()
+                    {
+                        Name = "TestSub2"
+                    }
+                }
+            });
+            dbContext.SaveChanges();
 
+            var result = (ViewResult)await homeController.Index();
+            var categories = (List<Category>)result.Model;
+            
             // Assert
-            Assert.True(false);
+            Assert.True(categories.Count == 2);
         }
 
         [Fact]
@@ -73,7 +104,7 @@ namespace AdvertSiteTests.Controllers
             using (var context = new advert_siteContext(options))
             {
                 int count = await context.Category.CountAsync();
-                Assert.True(3 == count);
+                Assert.True(2 == count);
             }
         }
 

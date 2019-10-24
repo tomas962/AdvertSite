@@ -38,15 +38,18 @@ namespace AdvertSite.Controllers
         [HttpGet]
         public async Task<IActionResult> Inbox()
         {
-            var advert_siteContext =
-               _context.UsersHasMessages
-                   .Where(m => m.RecipientId == _userManager.GetUserId(User) && m.IsDeleted == 0)
+            var advert_siteContext = GetUserInbox(_userManager.GetUserId(User));
+
+            return View(await advert_siteContext.ToListAsync());
+        }
+        public IOrderedQueryable<UsersHasMessages> GetUserInbox(String id)
+        {
+            return _context.UsersHasMessages
+                   .Where(m => m.RecipientId == id && m.IsDeleted == 0)
                    .Include(m => m.Messages)
                    .ThenInclude(m => m.UsersHasMessages)
                    .ThenInclude(userMessages => userMessages.Sender)
                    .OrderByDescending(m => m.Messages.DateSent);
-
-            return View(await advert_siteContext.ToListAsync());
         }
 
         // GET: MEssages/OutBox
@@ -54,17 +57,21 @@ namespace AdvertSite.Controllers
         [HttpGet]
         public async Task<IActionResult> Outbox()
         {
-            var advert_siteContext =
-               _context.UsersHasMessages
-                   .Where(m => m.SenderId == _userManager.GetUserId(User) && m.IsDeleted == 0 && m.IsAdminMessage == 0)
-                   .Include(m => m.Recipient)
-                   .Include(m => m.Messages)
-                   .ThenInclude(m => m.UsersHasMessages)
-                   .ThenInclude(userMessages => userMessages.Recipient)
-                   .OrderByDescending(m => m.Messages.DateSent);
+            var advert_siteContext = GetUserOutbox(_userManager.GetUserId(User));
 
 
             return View(await advert_siteContext.ToListAsync());
+        }
+
+        public IOrderedQueryable<UsersHasMessages> GetUserOutbox(String id)
+        {
+                return  _context.UsersHasMessages
+                .Where(m => m.SenderId == id && m.IsDeleted == 0 && m.IsAdminMessage == 0)
+                .Include(m => m.Recipient)
+                .Include(m => m.Messages)
+                .ThenInclude(m => m.UsersHasMessages)
+                .ThenInclude(userMessages => userMessages.Recipient)
+                .OrderByDescending(m => m.Messages.DateSent);
         }
 
         // GET: Messages/Details/5
@@ -229,6 +236,12 @@ namespace AdvertSite.Controllers
                  .Count();
 
             return count;
+        }
+
+
+        public Boolean getTrue()
+        {
+            return true;
         }
 
         //// GET: Messages/Delete/5

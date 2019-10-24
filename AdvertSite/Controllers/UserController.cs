@@ -136,10 +136,7 @@ namespace AdvertSite.Controllers
             {
                 return NotFound();
             }
-            var user = await _context.Users
-                .Include(u => u.Listings)
-                .Include(u => u.ReviewsSeller)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var user = GetUser(id);
 
             if (user == null)
             {
@@ -147,6 +144,14 @@ namespace AdvertSite.Controllers
             }
 
             return View(user);
+        }
+
+        public async Task<ApplicationUser> GetUser(string id)
+        {
+            return await _context.Users
+                .Include(u => u.Listings)
+                .Include(u => u.ReviewsSeller)
+                .FirstOrDefaultAsync(m => m.Id == id);
         }
     }
 }

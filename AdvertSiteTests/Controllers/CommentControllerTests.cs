@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Security.Principal;
@@ -51,7 +52,8 @@ namespace AdvertSiteTests.Controllers
             {   //setup fake user
                 fakeUser = new ApplicationUser()
                 {
-                    Email = "test@gmail.com"
+                    Email = "test@gmail.com",
+                    UserName = "FakeBob"
                 };
                 mockadvert_siteContext.Users.Add(fakeUser);
                 mockadvert_siteContext.SaveChanges();
@@ -90,7 +92,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task CreateAsync_StateUnderTest_ExpectedBehavior()
+        public async Task CreateAsync_ShouldCreateComment()
         {
             // Arrange
             var commentController = this.CreateCommentController(true);
@@ -123,65 +125,141 @@ namespace AdvertSiteTests.Controllers
         }
         
         [Fact]
-        public async Task CreateAjax_StateUnderTest_ExpectedBehavior()
+        public async Task CreateAjax_ShouldCreateComment()
         {
             // Arrange
-            var commentController = this.CreateCommentController(false);
-            int id = 0;
-            ListingAndComment listingAndComment = null;
+            var commentController = this.CreateCommentController(true);
+            int id;
+
+            //create new listing for comment
+            Listings listing = new Listings()
+            {
+                Name = "good Car",
+                Description = "easy free car :(",
+                Userid = fakeUser.Id
+            };
+            mockadvert_siteContext.Listings.Add(listing);
+            mockadvert_siteContext.SaveChanges();
+
+            //setup data
+            id = listing.Id;
+            ListingAndComment listingAndComment = new ListingAndComment() {
+                Comment = new Comments()
+                {
+                    Text = "GREAT CAR"
+                },
+                Listing = listing
+            };
 
             // Act
-            var result = await commentController.CreateAjax(
-                id,
-                listingAndComment);
+            var result = (OkResult)await commentController.CreateAjax(id, listingAndComment);
+            var addedComment = await mockadvert_siteContext.Comments.FirstOrDefaultAsync(c => c.Id == listingAndComment.Comment.Id);
+
+
+            // Assert
+            Assert.NotNull(addedComment);
+            Assert.Equal(listingAndComment.Comment.Text, addedComment.Text);
+            Assert.Equal(fakeUser.Id, addedComment.Userid);
+            Assert.Equal(200, result.StatusCode);
+            
+        }
+
+        [Fact]
+        public void Delete_ShouldDeleteSelectedComment ()
+        {
+            // Arrange
+            var commentController = this.CreateCommentController(true);
+
+            //create new listing for comment
+            Listings listing = new Listings()
+            {
+                Name = "good Car",
+                Description = "easy free car :(",
+                Userid = fakeUser.Id
+            };
+            mockadvert_siteContext.Listings.Add(listing);
+            mockadvert_siteContext.SaveChanges();
+
+            // Act
+            //var result = commentController.Delete(id);
 
             // Assert
             Assert.True(false);
         }
 
         [Fact]
-        public void Delete_StateUnderTest_ExpectedBehavior()
+        public async Task DeleteConfirmed_ShouldDeleteSelectedComment()
         {
             // Arrange
-            var commentController = this.CreateCommentController(false);
-            int? id = null;
+            var commentController = this.CreateCommentController(true);
+            
+            //create new listing for comment
+            Listings listing = new Listings()
+            {
+                Name = "good Car",
+                Description = "easy free car :(",
+                Userid = fakeUser.Id
+            };
+            mockadvert_siteContext.Listings.Add(listing);
+            mockadvert_siteContext.SaveChanges();
+
+            Comments comment = new Comments() {
+                Listingid = listing.Id,
+                Text = "Nice car, how much",
+                Userid = fakeUser.Id
+            };
+            mockadvert_siteContext.Comments.Add(comment);
+            mockadvert_siteContext.SaveChanges();
+
 
             // Act
-            var result = commentController.Delete(
-                id);
+            var result = await commentController.DeleteConfirmed(comment.Id);
+            var deletedComment = mockadvert_siteContext.Comments.FirstOrDefault(c => c.Id == comment.Id);
+            var listingCommentList = mockadvert_siteContext.Listings.Include(l => l.Comments).FirstOrDefault(l => l.Id == listing.Id).Comments;
 
             // Assert
-            Assert.True(false);
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.Null(deletedComment);
+            Assert.Equal(0, listingCommentList.Count);
         }
 
         [Fact]
-        public async Task DeleteConfirmed_StateUnderTest_ExpectedBehavior()
+        public async Task GetComments_ShouldGetAllListing_sComments()
         {
             // Arrange
-            var commentController = this.CreateCommentController(false);
-            int id = 0;
+            var commentController = this.CreateCommentController(true);
+
+            //create listing
+            var listing = new Listings() {
+                Name = "Free computer",
+                Description = "I'm giving away free pc",
+                Price = 0,
+                Userid = fakeUser.Id
+            };
+            mockadvert_siteContext.Listings.Add(listing);
+            mockadvert_siteContext.SaveChanges();
+
+            //add comments to listing
+            List<Comments> commentList = new List<Comments>() {
+                new Comments() { Listingid = listing.Id, Text = "Nice pc", Userid = fakeUser.Id},
+                new Comments() { Listingid = listing.Id, Text = "Nice pc", Userid = fakeUser.Id},
+                new Comments() { Listingid = listing.Id, Text = "WOW", Userid = fakeUser.Id}
+            };
+            foreach (var comment in commentList)
+            {
+                mockadvert_siteContext.Comments.Add(comment);
+            }
+            mockadvert_siteContext.SaveChanges();
 
             // Act
-            var result = await commentController.DeleteConfirmed(
-                id);
+            var result = await commentController.GetComments(listing.Id);
+            var okObjResult = (OkObjectResult)result;
+            var comments = (IEnumerable<dynamic>)okObjResult.Value;
 
             // Assert
-            Assert.True(false);
-        }
-
-        [Fact]
-        public async Task GetComments_StateUnderTest_ExpectedBehavior()
-        {
-            // Arrange
-            var commentController = this.CreateCommentController(false);
-            int listingId = 0;
-
-            // Act
-            var result = await commentController.GetComments(
-                listingId);
-
-            // Assert
-            Assert.True(false);
+            Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, okObjResult.StatusCode);
+            Assert.Equal(3, comments.Count());
         }
 
         public static UserManager<TUser> TestUserManager<TUser>(IUserStore<TUser> store = null) where TUser : class

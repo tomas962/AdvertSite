@@ -23,7 +23,7 @@ namespace AdvertSite.Controllers
             _context = context;
             _userManager = userManager;
         }
-
+        
         // GET: Comment/Create/4
         [Authorize(Roles = "Admin,User")]
         public IActionResult Create(int id)
@@ -73,14 +73,13 @@ namespace AdvertSite.Controllers
         {
             if (ModelState.IsValid)
             {
-                var comments = new Comments
-                {
-                    Listingid = id,
-                    Userid = this.User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    Text = listingAndComment.Comment.Text,
-                    Date = DateTime.Now
-                };
-                _context.Add(comments);
+
+                var comment = listingAndComment.Comment;
+                comment.Listingid = id;
+                comment.Userid = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                comment.Date = DateTime.Now;
+
+                _context.Add(comment);
                 await _context.SaveChangesAsync();
 
                 return Ok();

@@ -88,33 +88,8 @@ namespace AdvertSite.Controllers
         {
             if (ModelState.IsValid)
             {
-                Listings listings = new Listings()
-                {
-                    Subcategoryid = newListing.Subcategoryid,
-                    Name = newListing.Name,
-                    Description = newListing.Description,
-                    Price = newListing.Price,
-                    GoogleLatitude = newListing.GoogleLatitude,
-                    GoogleLongitude = newListing.GoogleLongitude,
-                    GoogleRadius = newListing.GoogleRadius * 1000
-                };
 
-                listings.Userid = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-                listings.Date = DateTime.Now;
-                listings.Display = 1;
-                listings.Verified = 0;
-                /*
-                listings.GoogleLongitude = 0;// newListing.GoogleLongitude;
-                listings.GoogleLatitude = 0;// newListing.GoogleLatitude;
-                listings.GoogleRadius = 10000;// newListing.GoogleRadius;
-                */
-
-
-       
-
-                _context.Add(listings);
-                await _context.SaveChangesAsync();
+                Listings listings = CreateListing(newListing);
 
                 if (newListing.ListingPictures != null && newListing.ListingPictures.Count() > 4) //jei nuotrauku daugiau nei 4 atmetam 
                 {
@@ -141,27 +116,7 @@ namespace AdvertSite.Controllers
 
                     foreach (var picture in newListing.ListingPictures)
                     {
-                        if (picture.Length > 0)
-                        {
-                            var pic = new ListingPictures { ListingId = listings.Id , ContentType = picture.ContentType};
-                            _context.Add(pic);
-                            await _context.SaveChangesAsync();
-
-                            string[] filenameAndExtension = picture.FileName.Split('.');
-                            filenameAndExtension[0] = pic.PictureId.ToString();
-
-                            string fileName = filenameAndExtension[0] + "." + filenameAndExtension[1];
-
-                            string path = "UserPictures" + "\\" + fileName;
-                            path = Path.GetFullPath(path);
-
-                            pic.FileName = fileName;
-                            _context.ListingPictures.Update(pic);
-                            using (var stream = new FileStream(path, FileMode.Create))
-                            {
-                                await picture.CopyToAsync(stream);
-                            }
-                        }
+                        CreatePicture(listings.Id, picture);
                     }
                 }
                 await _context.SaveChangesAsync();
@@ -206,7 +161,7 @@ namespace AdvertSite.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles ="Admin,User")]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Userid,Subcategoryid,Name,Description,Price,Quantity,Date,Verified,Display,GoogleLatitude,GoogleLongitude,GoogleRadius")] Listings listings)
+        public IActionResult Edit(int id, [Bind("Id,Userid,Subcategoryid,Name,Description,Price,Quantity,Date,Verified,Display,GoogleLatitude,GoogleLongitude,GoogleRadius")] Listings listings)
         {
             if (!listings.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)) && !this.User.IsInRole("Admin"))
             {
@@ -222,10 +177,7 @@ namespace AdvertSite.Controllers
             {
                 try
                 {
-                    listings.Display = 1;
-                    listings.Verified = 0;
-                    _context.Update(listings);
-                    await _context.SaveChangesAsync();
+                    EditUserListing(listings);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -249,7 +201,7 @@ namespace AdvertSite.Controllers
 
         // GET: Listings/Delete/5
         [Authorize(Roles ="Admin,User")]
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
             if (id == null)
             {
@@ -269,22 +221,18 @@ namespace AdvertSite.Controllers
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles ="Admin,User")]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var listings = await _context.Listings.FindAsync(id);
-            _context.Listings.Remove(listings);
-            await _context.SaveChangesAsync();
+            DeleteUserListing(id);
 
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost, ActionName("DenyListing")]
         [Authorize(Roles ="Admin")]
-        public async Task<IActionResult> DenyListing(int id)
+        public IActionResult DenyListing(int id)
         {
-            var listings = await _context.Listings.FindAsync(id);
-            _context.Listings.Remove(listings);
-            await _context.SaveChangesAsync();
+            DeleteUserListing(id);
             /*
              *  Vartotojui turetu issiusti zinute, kad jo skelbimas buvo atmestas. 
              */
@@ -297,12 +245,9 @@ namespace AdvertSite.Controllers
 
         [HttpPost, ActionName("ApproveListing")]
         [Authorize(Roles ="Admin")]
-        public async Task<IActionResult> ApproveListing(int id)
+        public IActionResult ApproveListing(int id)
         {
-            var listings = await _context.Listings.FindAsync(id);
-            listings.Verified = 1;
-            _context.Listings.Update(listings);
-            await _context.SaveChangesAsync();
+            ApproveUserListing(id);
             /*
              *  Vartotojui turetu issiusti zinute, kad jo skelbimas buvo priimtas.
              */
@@ -314,12 +259,9 @@ namespace AdvertSite.Controllers
 
         [HttpPost]
         [Authorize(Roles ="Admin")]
-        public async Task<IActionResult> Hide(int id)
+        public IActionResult Hide(int id)
         {
-            var listings = await _context.Listings.FindAsync(id);
-            listings.Display = 0;
-            _context.Listings.Update(listings);
-            await _context.SaveChangesAsync();
+            HideUserListing(id);
             /*
              *  Vartotojui turetu issiusti zinute, kad jo skelbimas buvo priimtas.
              */
@@ -339,6 +281,63 @@ namespace AdvertSite.Controllers
         #region HelperMethods
         //--------------------------------------------------------HELPER METHODS---------------------------------------------------
 
+        public async void ApproveUserListing(int id)
+        {
+            var listings = await _context.Listings.FindAsync(id);
+            listings.Verified = 1;
+            _context.Listings.Update(listings);
+            await _context.SaveChangesAsync();
+        }
+
+
+        // Also, if denied
+        public async void DeleteUserListing(int id)
+        {
+            var listings = await _context.Listings.FindAsync(id);
+            _context.Listings.Remove(listings);
+            await _context.SaveChangesAsync();
+        }
+
+        public async void HideUserListing(int id)
+        {
+            var listings = await _context.Listings.FindAsync(id);
+            listings.Display = 0;
+            _context.Listings.Update(listings);
+            await _context.SaveChangesAsync();
+        }
+
+        public async void EditUserListing(Listings listings)
+        {
+            listings.Display = 1;
+            listings.Verified = 0;
+            _context.Update(listings);
+            await _context.SaveChangesAsync();
+        }
+
+        public async void CreatePicture(int listingId, IFormFile picture)
+        {
+            if (picture.Length > 0)
+            {
+                var pic = new ListingPictures { ListingId = listingId, ContentType = picture.ContentType };
+                _context.Add(pic);
+                await _context.SaveChangesAsync();
+
+                string[] filenameAndExtension = picture.FileName.Split('.');
+                filenameAndExtension[0] = pic.PictureId.ToString();
+
+                string fileName = filenameAndExtension[0] + "." + filenameAndExtension[1];
+
+                string path = "UserPictures" + "\\" + fileName;
+                path = Path.GetFullPath(path);
+
+                pic.FileName = fileName;
+                _context.ListingPictures.Update(pic);
+                using (var stream = new FileStream(path, FileMode.Create))
+                {
+                    await picture.CopyToAsync(stream);
+                }
+            }
+        }
         public List<Listings> GetCategoriesAndSubCategories(String queryType, String queryKey, int? id)
         {
             IIncludableQueryable<Listings, ICollection<ListingPictures>> result = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).Include(l => l.ListingPictures);
@@ -394,6 +393,34 @@ namespace AdvertSite.Controllers
             return _context.Listings.Any(e => e.Id == id);
         }
 
+        private Listings CreateListing(ListingNewModel newListing)
+        {
+            Listings listings = new Listings()
+            {
+                Subcategoryid = newListing.Subcategoryid,
+                Name = newListing.Name,
+                Description = newListing.Description,
+                Price = newListing.Price,
+                GoogleLatitude = newListing.GoogleLatitude,
+                GoogleLongitude = newListing.GoogleLongitude,
+                GoogleRadius = newListing.GoogleRadius * 1000
+            };
+
+            listings.Userid = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            listings.Date = DateTime.Now;
+            listings.Display = 1;
+            listings.Verified = 0;
+            /*
+            listings.GoogleLongitude = 0;// newListing.GoogleLongitude;
+            listings.GoogleLatitude = 0;// newListing.GoogleLatitude;
+            listings.GoogleRadius = 10000;// newListing.GoogleRadius;
+            */
+            _context.Add(listings);
+            _context.SaveChanges();
+
+            return listings;
+        }
         public const int ImageMaximumBytes = 10000000;
 
         public static bool IsImage(IFormFile postedFile)

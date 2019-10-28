@@ -1,8 +1,11 @@
 using AdvertSite.Controllers;
 using AdvertSite.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -21,8 +24,6 @@ namespace AdvertSiteTests.Controllers
 
             this.mockadvert_siteContext = TestHelpers.CreateFakeDbContext();
             this.mockUserManager = TestHelpers.TestUserManager<ApplicationUser>();
-
-
         }
 
         public void Dispose()
@@ -30,7 +31,7 @@ namespace AdvertSiteTests.Controllers
             this.mockRepository.VerifyAll();
         }
 
-        private MessagesController CreateMessagesController(bool withUser)
+        private MessagesController CreateMessagesController(bool withUser = false)
         {
 
             var contr = new MessagesController(this.mockadvert_siteContext, this.mockUserManager);
@@ -55,17 +56,56 @@ namespace AdvertSiteTests.Controllers
             Assert.True(false);
         }
 
-        [Fact]
-        public void Inbox_StateUnderTest_ExpectedBehavior()
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(50)]
+        public void Inbox_ShouldReturnViewWithUserMessages(int msgCount)
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
 
+            //create sender
+            var user = new ApplicationUser() {
+                UserName = "John",
+                Email = "aerth@gmail.com"
+            };
+            mockadvert_siteContext.Users.Add(user);
+            mockadvert_siteContext.SaveChanges();
+
+            //create messages
+            for (int i = 0; i < msgCount; i++)
+            {
+                var msg = new Messages()
+                {
+                    DateSent = DateTime.Now,
+                    Subject = "TestMsg"+i,
+                    Text = "yo"+i
+                };
+                mockadvert_siteContext.Messages.Add(msg);
+                mockadvert_siteContext.SaveChanges();
+
+                var userHasMsg = new UsersHasMessages()
+                {
+                    MessagesId = msg.Id,
+                    RecipientId = fakeUser.Id,
+                    SenderId = user.Id,
+                    IsDeleted = 0
+                };
+
+
+                mockadvert_siteContext.UsersHasMessages.Add(userHasMsg);
+                mockadvert_siteContext.SaveChanges(); 
+            }
+
             // Act
             var result = messagesController.Inbox();
+            var viewResult = (ViewResult)result;
+            var messages = (IEnumerable<UsersHasMessages>)viewResult.Model;
 
             // Assert
-            Assert.True(false);
+            Assert.IsType<ViewResult>(result);
+            Assert.Equal(msgCount, messages.Count());
         }
 
         [Fact]
@@ -82,18 +122,50 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public void Details_StateUnderTest_ExpectedBehavior()
+        public void Details_ShouldGetAddedMessage()
         {
             // Arrange
-            var messagesController = this.CreateMessagesController();
-            int? id = null;
+            var messagesController = this.CreateMessagesController(true);
+
+            //create sender
+            var user = new ApplicationUser()
+            {
+                UserName = "John",
+                Email = "aerth@gmail.com"
+            };
+            mockadvert_siteContext.Users.Add(user);
+            mockadvert_siteContext.SaveChanges();
+
+            //add msg
+            var msgToAdd = new Messages()
+            {
+                DateSent = DateTime.Now,
+                Subject = "TefstMsg",
+                Text = "yoeqragh"
+            };
+            mockadvert_siteContext.Messages.Add(msgToAdd);
+            mockadvert_siteContext.SaveChanges();
+
+            var userHasMsg = new UsersHasMessages()
+            {
+                MessagesId = msgToAdd.Id,
+                RecipientId = fakeUser.Id,
+                SenderId = user.Id,
+                IsDeleted = 0
+            };
+            mockadvert_siteContext.UsersHasMessages.Add(userHasMsg);
+            mockadvert_siteContext.SaveChanges();
 
             // Act
-            var result = messagesController.Details(
-                id);
+            var result = messagesController.Details(msgToAdd.Id);
+            var viewResult = (ViewResult)result;
+            var addedMsg = (Messages)viewResult.Model;
 
             // Assert
-            Assert.True(false);
+            Assert.IsType<ViewResult>(result);
+            Assert.Equal(msgToAdd.Id, addedMsg.Id);
+            Assert.Equal(msgToAdd.Text, addedMsg.Text);
+            Assert.Equal(msgToAdd.Subject, addedMsg.Subject);
         }
 
         [Fact]

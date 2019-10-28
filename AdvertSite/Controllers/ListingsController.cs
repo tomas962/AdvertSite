@@ -20,11 +20,13 @@ namespace AdvertSite.Controllers
     public class ListingsController : Controller
     {
         private readonly advert_siteContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ListingsController(advert_siteContext context)
+        public ListingsController(advert_siteContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
-            
+            _userManager = userManager;
+
         }
 
 
@@ -33,7 +35,7 @@ namespace AdvertSite.Controllers
         public ViewResult Index(int? id)
         {
 
-            var list = GetCategoriesAndSubCategories(Request.Query["type"], Request.Query["key"], id);
+            var list = GetListingsByCategoriesAndSubCategories(Request.Query["type"], Request.Query["key"], id);
 
             return View(list);
         }
@@ -47,14 +49,14 @@ namespace AdvertSite.Controllers
 
         // GET: Listings/Details/5
         [AllowAnonymous]
-        public IActionResult Details(int? id)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var listing = GetListingWithAdditionalInformation((int)id);
+            var listing = await GetListingWithAdditionalInformation((int)id);
 
             if (listing == null)
             {
@@ -116,7 +118,7 @@ namespace AdvertSite.Controllers
 
                     foreach (var picture in newListing.ListingPictures)
                     {
-                        CreatePicture(listings.Id, picture);
+                        await CreatePicture(listings.Id, picture);
                     }
                 }
                 await _context.SaveChangesAsync();
@@ -131,14 +133,14 @@ namespace AdvertSite.Controllers
 
         // GET: Listings/Edit/5
         [Authorize(Roles ="Admin,User")]
-        public IActionResult Edit(int? id)
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var listings = GetListingWithoutAdditionalsInfomration((int)id);
+            var listings = await GetListingWithoutAdditionalsInfomration((int)id);
 
             if (listings == null)
             {
@@ -161,7 +163,7 @@ namespace AdvertSite.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles ="Admin,User")]
-        public IActionResult Edit(int id, [Bind("Id,Userid,Subcategoryid,Name,Description,Price,Quantity,Date,Verified,Display,GoogleLatitude,GoogleLongitude,GoogleRadius")] Listings listings)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Userid,Subcategoryid,Name,Description,Price,Quantity,Date,Verified,Display,GoogleLatitude,GoogleLongitude,GoogleRadius")] Listings listings)
         {
             if (!listings.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)) && !this.User.IsInRole("Admin"))
             {
@@ -177,7 +179,7 @@ namespace AdvertSite.Controllers
             {
                 try
                 {
-                    EditUserListing(listings);
+                    await EditUserListing(listings);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -201,14 +203,14 @@ namespace AdvertSite.Controllers
 
         // GET: Listings/Delete/5
         [Authorize(Roles ="Admin,User")]
-        public IActionResult Delete(int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var listings = GetListingWithAdditionalInformation((int)id);
+            var listings = await GetListingWithAdditionalInformation((int)id);
             if (listings == null)
             {
                 return NotFound();
@@ -221,18 +223,18 @@ namespace AdvertSite.Controllers
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles ="Admin,User")]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            DeleteUserListing(id);
+           await  DeleteUserListing(id);
 
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost, ActionName("DenyListing")]
         [Authorize(Roles ="Admin")]
-        public IActionResult DenyListing(int id)
+        public async Task<IActionResult> DenyListing(int id)
         {
-            DeleteUserListing(id);
+            await DeleteUserListing(id);
             /*
              *  Vartotojui turetu issiusti zinute, kad jo skelbimas buvo atmestas. 
              */
@@ -245,9 +247,9 @@ namespace AdvertSite.Controllers
 
         [HttpPost, ActionName("ApproveListing")]
         [Authorize(Roles ="Admin")]
-        public IActionResult ApproveListing(int id)
+        public async Task<IActionResult> ApproveListing(int id)
         {
-            ApproveUserListing(id);
+            await ApproveUserListing(id);
             /*
              *  Vartotojui turetu issiusti zinute, kad jo skelbimas buvo priimtas.
              */
@@ -259,9 +261,9 @@ namespace AdvertSite.Controllers
 
         [HttpPost]
         [Authorize(Roles ="Admin")]
-        public IActionResult Hide(int id)
+        public async Task<IActionResult> Hide(int id)
         {
-            HideUserListing(id);
+            await HideUserListing(id);
             /*
              *  Vartotojui turetu issiusti zinute, kad jo skelbimas buvo priimtas.
              */
@@ -281,7 +283,7 @@ namespace AdvertSite.Controllers
         #region HelperMethods
         //--------------------------------------------------------HELPER METHODS---------------------------------------------------
 
-        public async void ApproveUserListing(int id)
+        public async Task ApproveUserListing(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
             listings.Verified = 1;
@@ -291,14 +293,14 @@ namespace AdvertSite.Controllers
 
 
         // Also, if denied
-        public async void DeleteUserListing(int id)
+        public async Task DeleteUserListing(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
             _context.Listings.Remove(listings);
             await _context.SaveChangesAsync();
         }
 
-        public async void HideUserListing(int id)
+        public async Task HideUserListing(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
             listings.Display = 0;
@@ -306,7 +308,7 @@ namespace AdvertSite.Controllers
             await _context.SaveChangesAsync();
         }
 
-        public async void EditUserListing(Listings listings)
+        public async Task EditUserListing(Listings listings)
         {
             listings.Display = 1;
             listings.Verified = 0;
@@ -314,7 +316,7 @@ namespace AdvertSite.Controllers
             await _context.SaveChangesAsync();
         }
 
-        public async void CreatePicture(int listingId, IFormFile picture)
+        public async Task CreatePicture(int listingId, IFormFile picture)
         {
             if (picture.Length > 0)
             {
@@ -338,9 +340,10 @@ namespace AdvertSite.Controllers
                 }
             }
         }
-        public List<Listings> GetCategoriesAndSubCategories(String queryType, String queryKey, int? id)
+        public async  Task<List<Listings>> GetListingsByCategoriesAndSubCategories(String queryType = null, String queryKey = null, int? id = null)
         {
-            IIncludableQueryable<Listings, ICollection<ListingPictures>> result = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).Include(l => l.ListingPictures);
+            queryKey = queryKey.ToLower();
+            var result = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).Include(l => l.ListingPictures);
             if (queryType != null)
             {
                 if (queryType.Equals("Category"))
@@ -354,7 +357,7 @@ namespace AdvertSite.Controllers
                 else if (queryType.Equals("Search"))
                     if (queryKey != null)
                         result = result
-                            .Where(l => l.Name.Contains(queryKey) || l.Description.Contains(queryKey))
+                            .Where(l => l.Name.ToLower().Contains(queryKey) || l.Description.ToLower().Contains(queryKey))
                             .Include(l => l.ListingPictures);
                     else if (queryType.Equals("MyListings"))
                         result = _context.Listings
@@ -363,37 +366,37 @@ namespace AdvertSite.Controllers
             }
 
 
-            return result.ToList();
+            return await result.ToListAsync();
         }
 
-        public Listings GetListingWithAdditionalInformation(int id)
+        public async Task<Listings> GetListingWithAdditionalInformation(int id)
         {
-            return _context.Listings
+            return await _context.Listings
                 .Include(l => l.ListingPictures)
                 .Include(l => l.Subcategory)
                 .Include(l => l.User)
                 .Include(l => l.Subcategory.Category)
                 .Include(l => l.Comments)
                 .ThenInclude((Comments c) => c.User)
-                .FirstOrDefault(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id);
         }
 
-        public Listings GetListingWithoutAdditionalsInfomration(int id)
+        public async Task<Listings> GetListingWithoutAdditionalsInfomration(int id)
         {
-            return _context.Listings.Find(id);
+            return await _context.Listings.FindAsync(id);
         }
 
-        public List<Listings> GetUncomfirmedListings()
+        public async Task<List<Listings>> GetUncomfirmedListings()
         {
-            return _context.Listings.Where(l => l.Verified == 0).Include(l => l.ListingPictures).ToList();
+            return await _context.Listings.Where(l => l.Verified == 0).Include(l => l.ListingPictures).ToListAsync();
         }
 
-        private bool ListingsExists(int id)
+        public bool ListingsExists(int id)
         {
             return _context.Listings.Any(e => e.Id == id);
         }
 
-        private Listings CreateListing(ListingNewModel newListing)
+        public Listings CreateListing(ListingNewModel newListing)
         {
             Listings listings = new Listings()
             {

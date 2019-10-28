@@ -25,19 +25,13 @@ namespace AdvertSiteTests.Controllers
 
         private advert_siteContext mockadvert_siteContext;
         private UserManager<ApplicationUser> mockUserManager;
-        private ControllerContext fakeControllerContext;
 
         public CommentControllerTests()
         {
             this.mockRepository = new MockRepository(MockBehavior.Loose);
 
-            var dbOptions = new DbContextOptionsBuilder<advert_siteContext>()
-            .UseInMemoryDatabase(databaseName: "test")
-            .Options;
-            this.mockadvert_siteContext = new advert_siteContext(dbOptions);
-            this.mockUserManager = TestUserManager<ApplicationUser>();
-
-
+            this.mockadvert_siteContext = TestHelpers.CreateFakeDbContext();
+            this.mockUserManager = TestHelpers.TestUserManager<ApplicationUser>();
         }
 
         public void Dispose()
@@ -49,28 +43,8 @@ namespace AdvertSiteTests.Controllers
         {
             var commentController =  new CommentController(this.mockadvert_siteContext, this.mockUserManager);
             if (withUser)
-            {   //setup fake user
-                fakeUser = new ApplicationUser()
-                {
-                    Email = "test@gmail.com",
-                    UserName = "FakeBob"
-                };
-                mockadvert_siteContext.Users.Add(fakeUser);
-                mockadvert_siteContext.SaveChanges();
-
-                var identity = new GenericIdentity(fakeUser.Id, ClaimTypes.NameIdentifier);
-                identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, fakeUser.Id));
-                var fakeUserIdent = new GenericPrincipal(identity, new string[] { "User" });
-                //fakeUserIdent.AddIdentity(identity);
-                fakeControllerContext = new ControllerContext
-                {
-                    HttpContext = new DefaultHttpContext
-                    {
-                        User = fakeUserIdent
-                    }
-                };
-                //set fake user
-                commentController.ControllerContext = fakeControllerContext;
+            {
+                (fakeUser, commentController.ControllerContext) = TestHelpers.FakeUserAndControllerContext(mockadvert_siteContext);
             }
 
             return commentController;
@@ -262,25 +236,5 @@ namespace AdvertSiteTests.Controllers
             Assert.Equal(3, comments.Count());
         }
 
-        public static UserManager<TUser> TestUserManager<TUser>(IUserStore<TUser> store = null) where TUser : class
-        {
-            store = store ?? new Mock<IUserStore<TUser>>().Object;
-            var options = new Mock<IOptions<IdentityOptions>>();
-            var idOptions = new IdentityOptions();
-            idOptions.Lockout.AllowedForNewUsers = false;
-            options.Setup(o => o.Value).Returns(idOptions);
-            var userValidators = new List<IUserValidator<TUser>>();
-            var validator = new Mock<IUserValidator<TUser>>();
-            userValidators.Add(validator.Object);
-            var pwdValidators = new List<PasswordValidator<TUser>>();
-            pwdValidators.Add(new PasswordValidator<TUser>());
-            var userManager = new UserManager<TUser>(store, options.Object, new PasswordHasher<TUser>(),
-                userValidators, pwdValidators, new UpperInvariantLookupNormalizer(),
-                new IdentityErrorDescriber(), null,
-                new Mock<ILogger<UserManager<TUser>>>().Object);
-            validator.Setup(v => v.ValidateAsync(userManager, It.IsAny<TUser>()))
-                .Returns(Task.FromResult(IdentityResult.Success)).Verifiable();
-            return userManager;
-        }
     }
 }

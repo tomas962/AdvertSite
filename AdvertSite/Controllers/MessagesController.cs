@@ -38,9 +38,9 @@ namespace AdvertSite.Controllers
         [HttpGet]
         public IActionResult Inbox()
         {
-            var advert_siteContext = GetUserInbox(_userManager.GetUserId(User));
+            var messages = GetUserInbox(_userManager.GetUserId(User));
 
-            return View(advert_siteContext);
+            return View(messages);
         }
 
         // GET: MEssages/OutBox

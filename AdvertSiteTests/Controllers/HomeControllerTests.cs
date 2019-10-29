@@ -1,5 +1,6 @@
 using AdvertSite.Controllers;
 using AdvertSite.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -12,100 +13,100 @@ namespace AdvertSiteTests.Controllers
 {
     public class HomeControllerTests : IDisposable
     {
+
         private MockRepository mockRepository;
-        private Mock<advert_siteContext> mockadvert_siteContext;
-        private advert_siteContext dbContext;
-        // Do "global" initialization here; Called before every test method. SetUp()
+
+        private advert_siteContext mockadvert_siteContext;
+        private UserManager<ApplicationUser> mockUserManager;
+
         public HomeControllerTests()
         {
-            //this.mockRepository = new MockRepository(MockBehavior.Strict);
-            this.mockRepository = new MockRepository(MockBehavior.Default);
+            this.mockRepository = new MockRepository(MockBehavior.Loose);
 
-            var dbOptions = new DbContextOptionsBuilder<advert_siteContext>()
-            .UseInMemoryDatabase(databaseName: "test")
-            .Options;
-
-            dbContext = new advert_siteContext(dbOptions);
-            this.mockadvert_siteContext = this.mockRepository.Create<advert_siteContext>();
+            this.mockadvert_siteContext = TestHelpers.CreateFakeDbContext();
+            this.mockUserManager = TestHelpers.TestUserManager<ApplicationUser>();
         }
 
-        // Do "global" teardown here; Called after every test method. TearDown()
         public void Dispose()
         {
             this.mockRepository.VerifyAll();
-            dbContext.Dispose();
         }
 
-        private HomeController CreateHomeController()
+        private HomeController CreateHomeController(bool withUser = false)
         {
-            return new HomeController(this.mockadvert_siteContext.Object);
+            var homeController = new HomeController(this.mockadvert_siteContext);
+
+            return homeController;
         }
 
         [Fact]
         public async Task Index_StateUnderTest_ExpectedBehavior()
         {
             // Arrange
-            var homeController = new HomeController(dbContext);
+            var homeController = CreateHomeController();
 
-            // Act
-            dbContext.Add(new Category() {
-                Name = "TestCat",
-                Subcategory = new List<Subcategory>()
-                {
-                    new Subcategory()
-                    {
-                        Name = "TestSub"
-                    }
-                }
-            });
-            dbContext.Add(new Category()
+            var result = await homeController.Index();
+
+            var subCount = await mockadvert_siteContext.Subcategory.CountAsync();
+            var catCount = await mockadvert_siteContext.Category.CountAsync();
+
+            var resultView = (ViewResult)result;
+            var model = (List<Category>)resultView.Model;
+            int total = 0;
+            foreach (var item in model)
             {
-                Name = "TestCat2",
-                Subcategory = new List<Subcategory>()
-                {
-                    new Subcategory()
-                    {
-                        Name = "TestSub2"
-                    }
-                }
-            });
-            dbContext.SaveChanges();
+                total += item.Subcategory.Count;
+            }
+            Assert.IsType<ViewResult>(result);
 
-            var result = (ViewResult)await homeController.Index();
-            var categories = (List<Category>)result.Model;
-            
-            // Assert
-            Assert.True(categories.Count == 2);
+
+            Assert.Equal(subCount + catCount, total + model.Count);
         }
 
         [Fact]
-        public async Task example()
+        public void About_StateUnderTest_ExpectedBehaviour()
         {
-            var options = new DbContextOptionsBuilder<advert_siteContext>()
-           .UseInMemoryDatabase(databaseName: "test")
-           .Options;
+            var homeController = CreateHomeController();
 
-            using (var context = new advert_siteContext(options))
-            {
-                var category = new Category();
-                category.Id = 1;
-                category.Name = "test";
+            var result = homeController.About();
+            var viewResult = (ViewResult)result;
 
-                var category2 = new Category();
-                category2.Id = 2;
-                category2.Name = "test";
-
-                context.Category.Add(category);
-                context.Category.Add(category2);
-                context.SaveChanges();
-            }
-
-            using (var context = new advert_siteContext(options))
-            {
-                int count = await context.Category.CountAsync();
-                Assert.True(2 == count);
-            }
+            Assert.IsType<ViewResult>(result);
+            Assert.NotNull(viewResult.ViewData["Message"]);
         }
 
+        [Fact]
+        public void Privacy_StateUnderTest_ExpectedBehaviour()
+        {
+            var homeController = CreateHomeController();
+
+            var result = homeController.Privacy();
+
+            Assert.IsType<ViewResult>(result);
+        }
+
+        [Fact]
+        public void Contact_StateUnderTest_ExpectedBehaviour()
+        {
+            var homeController = CreateHomeController();
+
+            var result = homeController.Contact();
+            var viewResult = (ViewResult)result;
+
+            Assert.IsType<ViewResult>(result);
+            Assert.NotNull(viewResult.ViewData["Message"]);
+        }
+
+        [Fact(Skip = "Not implemented")]
+        public void Error_StateUnderTest_ExpectedBehaviour()
+        {
+            var homeController = CreateHomeController();
+
+            var result = homeController.Error();
+            var viewResult = (ViewResult)result;
+
+            Assert.IsType<ViewResult>(result);
+            Assert.IsType<ErrorViewModel>(viewResult.Model);
+        }
     }
 }

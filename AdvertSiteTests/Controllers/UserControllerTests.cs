@@ -42,7 +42,7 @@ namespace AdvertSiteTests.Controllers
 
             return contr;
         }
-        [Fact]
+        [Fact(Skip = "Not implemented")]
         public void Logout_StateUnderTest_ExpectedBehavior()
         {
             // Arrange

@@ -621,14 +621,19 @@ namespace AdvertSiteTests.Controllers
         {
             // Arrange
             var picStream = new FileStream("UserPictures\\TEST_PICTURE.png", FileMode.Open);
-            
-            var image = new FormFile(picStream, 0, picStream.Length, "TEST_PICTURE.png", "TEST_PICTURE.png");
-            
+
+            var image = new FormFile(picStream, 0, picStream.Length, "TEST_PICTURE.png", "TEST_PICTURE.png")
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = new string("image/png")
+            };
 
             var result = ListingsController.IsImage(image);
 
             // Assert
             Assert.True(result);
+
+            picStream.Close();
         }
 
         public Listings GenerateListing(int id = -1, String userid = null, int subcategoryid = -1, String name = "", String description = "", int quantity = -1, short verified = 0, short display = 0, DateTime date = new DateTime())

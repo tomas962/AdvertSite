@@ -94,9 +94,9 @@ namespace AdvertSiteTests.Controllers
         [Theory]
         [InlineData("Subcategory", null, 1, 5)]
         [InlineData("Category", null, 1, 8)]
-        [InlineData("Search", "mouse", null, 3)]
+        [InlineData("Search", "mouse", null, 2)]
         [InlineData("Test", "test", 15666, 9)]
-        public async Task Index_StateUnderTest_ExpectedBehavior(string type, string key, int? id, int expectedResult)
+        public async Task Index_RequestQuery_OpenAllListingView(string type, string key, int? id, int expectedResult)
         {
             var httpContext = new Mock<HttpContext>();
             httpContext.Setup(x => x.Request.Query["type"]).Returns(type);
@@ -135,7 +135,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task UncomfirmedListings_StateUnderTest_ExpectedBehavior()
+        public async Task UncomfirmedListings_Listings_ReturnUnconfirmedListingView()
         {
             // Arrange
             var listingsController = this.CreateListingsController();
@@ -163,20 +163,19 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task Details_StateUnderTest_ExpectedBehavior()
+        public async Task Details_UserListing_ListingDetailsView()
         {
             // Arrange
             var listingsController = this.CreateListingsController(true);
             List<Listings> list = new List<Listings>()
             {
-                GenerateListing(verified: 0, userid: this.fakeUser.Id),
+                GenerateListing(verified: 0, subcategoryid: 1, userid: this.fakeUser.Id),
                 GenerateListing(verified: 0),
                 GenerateListing(verified: 0),
                 GenerateListing(verified: 1,  userid: this.fakeUser.Id),
                 GenerateListing(verified: 1),
                 GenerateListing(verified: 0),
             };
-
             context.Listings.AddRange(list);
             await context.SaveChangesAsync();
 
@@ -188,9 +187,34 @@ namespace AdvertSiteTests.Controllers
             // Assert
             Assert.Equal(listing.Listing.Id, list[0].Id);
         }
+        
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(null)]
+        public async Task Details_UserListing_OpenNotFoundResult(int? id)
+        {
+            // Arrange
+            var listingsController = this.CreateListingsController(true);
+            List<Listings> list = new List<Listings>()
+            {
+                GenerateListing(verified: 0, subcategoryid: 1, userid: this.fakeUser.Id),
+                GenerateListing(verified: 0),
+                GenerateListing(verified: 0),
+                GenerateListing(verified: 1,  userid: this.fakeUser.Id),
+                GenerateListing(verified: 1),
+                GenerateListing(verified: 0),
+            };
+            context.Listings.AddRange(list);
+            await context.SaveChangesAsync();
+
+            var result = await listingsController.Details(id);
+
+            Assert.IsType<NotFoundResult>(result);
+        }
+
 
         [Fact]
-        public void Create_StateUnderTest_ExpectedBehavior()
+        public void Create_UserListing_OpenCreationView()
         {
             // Arrange
             var listingsController = this.CreateListingsController(true);
@@ -203,22 +227,40 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task CreatePost_StateUnderTest_ExpectedBehavior()
+        public async Task CreatePost_NewListingModel_CreateAndRedirectToView()
         {
             // Arrange
-            var listingsController = this.CreateListingsController();
-            ListingNewModel newListing = null;
+            var listingsController = this.CreateListingsController(true);
+            ListingNewModel newListing = new ListingNewModel()
+            {
+                Subcategoryid = 0,
+                Name = "Great bike",
+                Description = "Greatest bike there is",
+                Price = 500.0,
+            };
 
-            // Act
-            var result = await listingsController.CreatePost(
-                newListing);
+
+            var result = await listingsController.CreatePost(newListing);
 
             // Assert
-            Assert.True(false);
+            Assert.IsType<RedirectToActionResult>(result);
         }
 
         [Fact]
-        public async Task Edit_StateUnderTest_ExpectedBehavior()
+        public async Task CreatePost_InvalidModelState_ReturnView()
+        {
+            // Arrange
+            var listingsController = this.CreateListingsController(true);
+            listingsController.ModelState.AddModelError("key", "error");
+
+            var result = await listingsController.CreatePost(null);
+
+            // Assert
+            Assert.IsType<ViewResult>(result);
+        }
+
+        [Fact]
+        public async Task Edit_UserListing_OpenEditViewResult()
         {
             var listingsController = this.CreateListingsController(true);
             List<Listings> list = new List<Listings>()
@@ -242,8 +284,55 @@ namespace AdvertSiteTests.Controllers
             Assert.True(toEditInfo.Id == list[2].Id);
         }
 
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(null)]
+        public async Task Edit_UserListing_OpenNotFoundResult(int? id)
+        {
+            var listingsController = this.CreateListingsController(true);
+            List<Listings> list = new List<Listings>()
+            {
+                GenerateListing(userid: this.fakeUser.Id),
+                GenerateListing(userid: this.fakeUser.Id),
+            };
+
+            context.Listings.AddRange(list);
+            await context.SaveChangesAsync();
+
+            var result = await listingsController.Edit(id);
+
+            Assert.IsType<NotFoundResult>(result);
+        }
+
         [Fact]
-        public async Task Edit_StateUnderTest_ExpectedBehavior1()
+        public async Task Edit_UserListing_OpenForbidResult()
+        {
+            var listingsController = this.CreateListingsController(true);
+            var user = new ApplicationUser()
+            {
+                UserName = "Frank",
+                Email = "TheGreatesFrank@gmail.com"
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+
+            List<Listings> list = new List<Listings>()
+            {
+                GenerateListing(userid: user.Id),
+                GenerateListing(userid: this.fakeUser.Id),
+            };
+
+            context.Listings.AddRange(list);
+            await context.SaveChangesAsync();
+
+            var result = await listingsController.Edit(list[0].Id);
+
+            Assert.IsType<ForbidResult>(result);
+        }
+
+
+        [Fact]
+        public async Task Edit_UserListing_ChangeListing()
         {
             // Arrange
             var listingsController = this.CreateListingsController(true);       
@@ -274,7 +363,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task Delete_StateUnderTest_ExpectedBehavior()
+        public async Task Delete_UserListing_OpenViewResult()
         {
             // Arrange
             var listingsController = this.CreateListingsController();
@@ -300,8 +389,30 @@ namespace AdvertSiteTests.Controllers
             Assert.True(deleteInfo.Id == list[2].Id);
         }
 
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(null)]
+        public async Task Delete_UserListing_OpenNotFoundResult(int? id)
+        {
+            // Arrange
+            var listingsController = this.CreateListingsController();
+            List<Listings> list = new List<Listings>()
+            {
+                GenerateListing(),
+                GenerateListing(),
+            };
+
+            context.Listings.AddRange(list);
+            await context.SaveChangesAsync();
+
+            var result = await listingsController.Delete(id);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result);
+        }
+
         [Fact]
-        public async Task DeleteConfirmed_StateUnderTest_ExpectedBehavior()
+        public async Task DeleteConfirmed_UserListing_Delete()
         {
             var listingsController = this.CreateListingsController();
             List<Listings> list = new List<Listings>()
@@ -327,7 +438,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task DenyListing_StateUnderTest_ExpectedBehavior()
+        public async Task DenyListing_UserListing_DenyListing()
         {
             // Arrange
             var listingsController = this.CreateListingsController();
@@ -350,7 +461,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task ApproveListing_StateUnderTest_ExpectedBehavior()
+        public async Task ApproveListing_UserListing_MakeApproved()
         {
             // Arrange
             var listingsController = this.CreateListingsController();
@@ -373,7 +484,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task Hide_StateUnderTest_ExpectedBehavior()
+        public async Task Hide_UserListing_MakeHidden()
         {
             var listingsController = this.CreateListingsController();
             List<Listings> list = new List<Listings>()
@@ -394,7 +505,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task ListingsJSON_StateUnderTest_ExpectedBehavior()
+        public async Task ListingsJSON_ListingsInDatabase_ReturnJson()
         {
             // Arrange
             var listingsController = this.CreateListingsController();
@@ -421,7 +532,7 @@ namespace AdvertSiteTests.Controllers
         [InlineData(5555, true)]
         [InlineData(2, false)]
         [InlineData(4501788, true)]
-        public async Task ListingsExists_StateUnderTest_ExpectedBehavior(int id, bool expectedResponse)
+        public async Task ListingsExists_ListingId_ReturnBool(int id, bool expectedResponse)
         {
             var listingsController = this.CreateListingsController();
             List<Listings> list = new List<Listings>()

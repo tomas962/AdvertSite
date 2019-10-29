@@ -66,7 +66,6 @@ namespace AdvertSite.Controllers
             }
 
             var listing = await _context.Listings
-                .Include(l => l.ListingPictures)
                 .Include(l => l.Subcategory)
                 .Include(l => l.User)
                 .Include(l => l.Subcategory.Category)
@@ -181,7 +180,7 @@ namespace AdvertSite.Controllers
                     }
                 }
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "Jūsų skelbimas bus patalpintas, kai administratorius jį patikrins";
+                //TempData["Success"] = "Jūsų skelbimas bus patalpintas, kai administratorius jį patikrins";
                 return RedirectToAction(nameof(Index));
             }
 

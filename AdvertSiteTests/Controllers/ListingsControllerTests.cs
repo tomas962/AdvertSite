@@ -1,6 +1,7 @@
 using AdvertSite.Controllers;
 using AdvertSite.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -619,16 +620,15 @@ namespace AdvertSiteTests.Controllers
         public void IsImage_StateUnderTest_ExpectedBehavior()
         {
             // Arrange
-            var listingsController = this.CreateListingsController();
-            var image = new Mock<IFormFile>();
-            var physicalFile = new FileInfo(@"../images/notFound.jpg");
-            var memory = new MemoryStream();
+            var picStream = new FileStream("UserPictures\\TEST_PICTURE.png", FileMode.Open);
+            
+            var image = new FormFile(picStream, 0, picStream.Length, "TEST_PICTURE.png", "TEST_PICTURE.png");
+            
 
-
-            IFormFile postedFile = null;
+            var result = ListingsController.IsImage(image);
 
             // Assert
-            Assert.True(false);
+            Assert.True(result);
         }
 
         public Listings GenerateListing(int id = -1, String userid = null, int subcategoryid = -1, String name = "", String description = "", int quantity = -1, short verified = 0, short display = 0, DateTime date = new DateTime())

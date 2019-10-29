@@ -39,7 +39,7 @@ namespace AdvertSite.Controllers
         public IActionResult Inbox()
         {
             var messages = GetUserInbox(_userManager.GetUserId(User));
-
+            
             return View(messages);
         }
 

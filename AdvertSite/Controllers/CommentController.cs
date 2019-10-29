@@ -81,7 +81,7 @@ namespace AdvertSite.Controllers
 
                 _context.Add(comment);
                 await _context.SaveChangesAsync();
-
+                
                 return Ok();
             }
 

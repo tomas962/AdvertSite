@@ -616,19 +616,22 @@ namespace AdvertSiteTests.Controllers
             Assert.Equal(expectedResponse, result);
         }
 
-        [Fact]
-        public void IsImage_StateUnderTest_ExpectedBehavior()
+        [Theory]
+        [InlineData("TEST_PICTURE.png", true)]
+        [InlineData("asdeqrqetrq", false)]
+        public void IsImage_StateUnderTest_ExpectedBehavior(string imageName, bool expectedResult)
         {
             // Arrange
-            var picStream = new FileStream("UserPictures\\TEST_PICTURE.png", FileMode.Open);
+            var picStream = new FileStream("UserPictures\\" + imageName, FileMode.Open);
             
-            var image = new FormFile(picStream, 0, picStream.Length, "TEST_PICTURE.png", "TEST_PICTURE.png");
+            var image = new FormFile(picStream, 0, picStream.Length, imageName, imageName);
             
 
             var result = ListingsController.IsImage(image);
 
             // Assert
-            Assert.True(result);
+
+            Assert.Equal(expectedResult, result);
         }
 
         public Listings GenerateListing(int id = -1, String userid = null, int subcategoryid = -1, String name = "", String description = "", int quantity = -1, short verified = 0, short display = 0, DateTime date = new DateTime())

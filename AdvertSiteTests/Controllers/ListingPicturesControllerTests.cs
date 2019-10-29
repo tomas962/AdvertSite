@@ -21,7 +21,6 @@ namespace AdvertSiteTests.Controllers
 
             this.mockadvert_siteContext = TestHelpers.CreateFakeDbContext();
 
-
         }
 
         public void Dispose()

@@ -192,7 +192,7 @@ namespace AdvertSiteTests.Controllers
         [Theory]
         [InlineData(-1)]
         [InlineData(null)]
-        public async Task Details_UserListing_OpenNotFoundResult(int? id)
+        public async Task Details_UserListing_OpenNotFoundView(int? id)
         {
             // Arrange
             var listingsController = this.CreateListingsController(true);
@@ -248,7 +248,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task CreatePost_InvalidModelState_ReturnView()
+        public async Task CreatePost_InvalidModelState_OpenView()
         {
             // Arrange
             var listingsController = this.CreateListingsController(true);
@@ -261,7 +261,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task Edit_UserListing_OpenEditViewResult()
+        public async Task Edit_UserListingId_OpenEditView()
         {
             var listingsController = this.CreateListingsController(true);
             List<Listings> list = new List<Listings>()
@@ -288,7 +288,7 @@ namespace AdvertSiteTests.Controllers
         [Theory]
         [InlineData(-1)]
         [InlineData(null)]
-        public async Task Edit_UserListing_OpenNotFoundResult(int? id)
+        public async Task Edit_UserListingId_OpenNotFoundView(int? id)
         {
             var listingsController = this.CreateListingsController(true);
             List<Listings> list = new List<Listings>()
@@ -306,7 +306,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task Edit_UserListing_OpenForbidResult()
+        public async Task Edit_UserListingId_OpenForbidView()
         {
             var listingsController = this.CreateListingsController(true);
             var user = new ApplicationUser()
@@ -364,7 +364,65 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task Delete_UserListing_OpenViewResult()
+        public async Task Edit_UserListingDifferentIds_OpenNotFoundView()
+        {
+            // Arrange
+            var listingsController = this.CreateListingsController(true);
+            List<Listings> list = new List<Listings>()
+            {
+                GenerateListing(userid: this.fakeUser.Id),
+                GenerateListing(),
+                GenerateListing(),
+                GenerateListing(),
+                GenerateListing(),
+                GenerateListing()
+            };
+            context.Listings.AddRange(list);
+            await context.SaveChangesAsync();
+
+            list[0].Description = "New Desciption";
+            list[0].Name = "New Name";
+
+            var result = await listingsController.Edit(list[0].Id + 1, list[0]);
+
+            Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task Edit_NotYourListing_OpenForbidView()
+        {
+            // Arrange
+            var listingsController = this.CreateListingsController(true);
+            var user = new ApplicationUser()
+            {
+                UserName = "Steven",
+                Email = "Steven@gmail.com"
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+
+            List<Listings> list = new List<Listings>()
+            {
+                GenerateListing(userid: user.Id),
+                GenerateListing(),
+                GenerateListing(),
+                GenerateListing(),
+                GenerateListing(),
+                GenerateListing()
+            };
+            context.Listings.AddRange(list);
+            await context.SaveChangesAsync();
+
+            list[0].Description = "New Desciption";
+            list[0].Name = "New Name";
+
+            var result = await listingsController.Edit(list[0].Id, list[0]);
+
+            Assert.IsType<ForbidResult>(result);
+        }
+
+        [Fact]
+        public async Task Delete_UserListing_OpenView()
         {
             // Arrange
             var listingsController = this.CreateListingsController();
@@ -393,7 +451,7 @@ namespace AdvertSiteTests.Controllers
         [Theory]
         [InlineData(-1)]
         [InlineData(null)]
-        public async Task Delete_UserListing_OpenNotFoundResult(int? id)
+        public async Task Delete_UserListing_OpenNotFoundView(int? id)
         {
             // Arrange
             var listingsController = this.CreateListingsController();
@@ -413,7 +471,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task DeleteConfirmed_UserListing_Delete()
+        public async Task DeleteConfirmed_UserListing_DeleteListing()
         {
             var listingsController = this.CreateListingsController();
             List<Listings> list = new List<Listings>()
@@ -462,7 +520,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task ApproveListing_UserListing_MakeApproved()
+        public async Task ApproveListing_UserListing_MarkAsApproved()
         {
             // Arrange
             var listingsController = this.CreateListingsController();
@@ -533,7 +591,7 @@ namespace AdvertSiteTests.Controllers
         [InlineData(5555, true)]
         [InlineData(2, false)]
         [InlineData(4501788, true)]
-        public async Task ListingsExists_ListingId_ReturnBool(int id, bool expectedResponse)
+        public void ListingsExists_ListingId_ReturnBool(int id, bool expectedResponse)
         {
             var listingsController = this.CreateListingsController(true);
             List<Listings> list = new List<Listings>()

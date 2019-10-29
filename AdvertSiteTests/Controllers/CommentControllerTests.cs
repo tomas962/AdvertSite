@@ -123,7 +123,43 @@ namespace AdvertSiteTests.Controllers
             Assert.Equal(addedComment.Userid, fakeUser.Id);
             
         }
-        
+        [Fact]
+        public async Task CreateAsync_InvalidModelState_RedirectToMainPage()
+        {
+            // Arrange
+            var commentController = this.CreateCommentController(true);
+            commentController.ModelState.AddModelError("key", "message");
+
+            int id;
+
+            //create new listing for comment
+            Listings listing = new Listings()
+            {
+                Name = "good Car",
+                Description = "easy free car :(",
+                Userid = fakeUser.Id
+            };
+            mockadvert_siteContext.Listings.Add(listing);
+            mockadvert_siteContext.SaveChanges();
+
+            //setup data
+            id = listing.Id;
+            ListingAndComment listingAndComment = new ListingAndComment()
+            {
+                Comment = new Comments()
+                {
+                    Text = "GREAT CAR"
+                },
+                Listing = listing
+            };
+
+            var result = await commentController.CreateAjax(id, listingAndComment);
+            var resultView = (RedirectToActionResult)result;
+
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Index", resultView.ActionName);
+            Assert.Equal("Home", resultView.ControllerName);
+        }
         [Fact]
         public async Task CreateAjax_Comment_ShouldCreateComment()
         {
@@ -233,7 +269,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task DeleteConfirmed_Comment_ShouldDeleteSelectedComment()
+        public async Task DeleteConfirmed_Comment_DeleteSelectedComment()
         {
             // Arrange
             var commentController = this.CreateCommentController(true);

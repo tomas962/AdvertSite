@@ -105,7 +105,7 @@ namespace AdvertSite.Controllers
         public IActionResult Create()
         {
             // Jeigu vartotojas bando rasyti zinute sau
-            if (Request.Query["recipientId"].Equals(_userManager.GetUserId(User)))
+            if (Request.Query["recipientId"].Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)))
             {
                 return RedirectToAction("Index", "Home");
             }

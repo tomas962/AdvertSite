@@ -1,8 +1,11 @@
 using AdvertSite.Controllers;
 using AdvertSite.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -10,21 +13,16 @@ namespace AdvertSiteTests.Controllers
 {
     public class UserControllerTests : IDisposable
     {
+        private ApplicationUser fakeUser;
         private MockRepository mockRepository;
-
-        private Mock<advert_siteContext> mockadvert_siteContext;
         private advert_siteContext context;
+        private UserManager<ApplicationUser> mockUserManager;
 
         public UserControllerTests()
         {
-            var options = new DbContextOptionsBuilder<advert_siteContext>()
-              .UseInMemoryDatabase(databaseName: "testDb")
-              .Options;
-
-            this.context = new advert_siteContext(options);
+            this.mockUserManager = TestHelpers.TestUserManager<ApplicationUser>();
+            this.context = TestHelpers.CreateFakeDbContext();
             this.mockRepository = new MockRepository(MockBehavior.Strict);
-
-            this.mockadvert_siteContext = this.mockRepository.Create<advert_siteContext>(options);
         }
 
 
@@ -37,7 +35,7 @@ namespace AdvertSiteTests.Controllers
         private UserController CreateUserController()
         {
             return new UserController(
-                this.mockadvert_siteContext.Object);
+                this.context);
         }
         [Fact]
         public void Logout_StateUnderTest_ExpectedBehavior()
@@ -53,25 +51,28 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public void GetUserState_ExpectedBehavior()
+        public async Task DetailsShouldGetUserInformation()
         {
-            var userController = new UserController(context);
+            var userController = CreateUserController();
             var user = new ApplicationUser()
             {
-                Id = "Testid",
                 UserName = "Mark"
             };
             var user2 = new ApplicationUser()
             {
-                Id = "TestID2",
                 UserName = "Hellen"
             };
             context.Users.Add(user);
             context.Users.Add(user2);
+            await context.SaveChangesAsync();
 
-            context.SaveChanges();
-            var retrievedUser = userController.GetUser(user.Id);
-            Assert.Equal(retrievedUser.Result.UserName, user.UserName);
+            var result = await userController.Details(user.Id);
+            var viewResult = (ViewResult)result;
+            var retrievedUser = (ApplicationUser)viewResult.Model;
+
+            Assert.IsType<ViewResult>(result);
+            Assert.IsType<ApplicationUser>(retrievedUser);
+            Assert.Equal(retrievedUser.Id, user.Id);
         }
     }
 }

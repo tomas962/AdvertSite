@@ -32,19 +32,28 @@ namespace AdvertSite.Controllers
 
         // GET: Listings
         [AllowAnonymous]
-        public ViewResult Index(int? id)
+        public async Task<IActionResult> Index(int? id)
         {
+            var masterContext = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1);
 
-            var list = GetListingsByCategoriesAndSubCategories(Request.Query["type"], Request.Query["key"], id);
+            if (Request.Query["type"].Equals("Category"))
+                masterContext = masterContext.Where(l => l.Subcategory.Categoryid == id);
+            else if (Request.Query["type"].Equals("Subcategory"))
+                masterContext = masterContext.Where(l => l.Subcategoryid == id);
+            else if (Request.Query["type"].Equals("Search"))
+                masterContext = masterContext.Where(l => l.Name.Contains(Request.Query["key"]) || l.Description.Contains(Request.Query["key"]));
+            else if (Request.Query["type"].Equals("MyListings"))
+                masterContext = _context.Listings.Where(l => l.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)));
 
-            return View(list);
+            return View(await masterContext.ToListAsync());
         }
 
         // GET: Uncomfirmed
         [Authorize(Roles = "Admin")]
-        public IActionResult UncomfirmedListings()
+        public async Task<IActionResult> UncomfirmedListings()
         {
-            return View(GetUncomfirmedListings());
+            var masterContext = _context.Listings.Where(l => l.Verified == 0).ToListAsync();
+            return View(await masterContext);
         }
 
         // GET: Listings/Details/5
@@ -56,7 +65,14 @@ namespace AdvertSite.Controllers
                 return NotFound();
             }
 
-            var listing = await GetListingWithAdditionalInformation((int)id);
+            var listing = await _context.Listings
+                .Include(l => l.ListingPictures)
+                .Include(l => l.Subcategory)
+                .Include(l => l.User)
+                .Include(l => l.Subcategory.Category)
+                .Include(l => l.Comments)
+                .ThenInclude((Comments c) => c.User)
+                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (listing == null)
             {
@@ -75,7 +91,7 @@ namespace AdvertSite.Controllers
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Name");
             ViewData["Userid"] = new SelectList(_context.Users, "Id", "UserName");
             if (TempData.ContainsKey("PictureError")) ViewData["PictureError"] = TempData["PictureError"];
-            ModelState.Clear();
+                ModelState.Clear();
             return View(listingModel);
         }
 
@@ -91,7 +107,30 @@ namespace AdvertSite.Controllers
             if (ModelState.IsValid)
             {
 
-                Listings listings = CreateListing(newListing);
+                Listings listings = new Listings()
+                {
+                    Subcategoryid = newListing.Subcategoryid,
+                    Name = newListing.Name,
+                    Description = newListing.Description,
+                    Price = newListing.Price,
+                    GoogleLatitude = newListing.GoogleLatitude,
+                    GoogleLongitude = newListing.GoogleLongitude,
+                    GoogleRadius = newListing.GoogleRadius * 1000
+                };
+
+                listings.Userid = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                listings.Date = DateTime.Now;
+                listings.Display = 1;
+                listings.Verified = 0;
+                /*
+                listings.GoogleLongitude = 0;// newListing.GoogleLongitude;
+                listings.GoogleLatitude = 0;// newListing.GoogleLatitude;
+                listings.GoogleRadius = 10000;// newListing.GoogleRadius;
+                */
+                _context.Add(listings);
+                _context.SaveChanges();
+
 
                 if (newListing.ListingPictures != null && newListing.ListingPictures.Count() > 4) //jei nuotrauku daugiau nei 4 atmetam 
                 {
@@ -118,7 +157,27 @@ namespace AdvertSite.Controllers
 
                     foreach (var picture in newListing.ListingPictures)
                     {
-                        await CreatePicture(listings.Id, picture);
+                        if (picture.Length > 0)
+                        {
+                            var pic = new ListingPictures { ListingId = listings.Id, ContentType = picture.ContentType };
+                            _context.Add(pic);
+                            await _context.SaveChangesAsync();
+
+                            string[] filenameAndExtension = picture.FileName.Split('.');
+                            filenameAndExtension[0] = pic.PictureId.ToString();
+
+                            string fileName = filenameAndExtension[0] + "." + filenameAndExtension[1];
+
+                            string path = "UserPictures" + "\\" + fileName;
+                            path = Path.GetFullPath(path);
+
+                            pic.FileName = fileName;
+                            _context.ListingPictures.Update(pic);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await picture.CopyToAsync(stream);
+                            }
+                        }
                     }
                 }
                 await _context.SaveChangesAsync();
@@ -140,7 +199,7 @@ namespace AdvertSite.Controllers
                 return NotFound();
             }
 
-            var listings = await GetListingWithoutAdditionalsInfomration((int)id);
+            var listings = await _context.Listings.FindAsync(id);
 
             if (listings == null)
             {
@@ -179,7 +238,10 @@ namespace AdvertSite.Controllers
             {
                 try
                 {
-                    await EditUserListing(listings);
+                    listings.Display = 1;
+                    listings.Verified = 0;
+                    _context.Update(listings);
+                    await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -210,7 +272,10 @@ namespace AdvertSite.Controllers
                 return NotFound();
             }
 
-            var listings = await GetListingWithAdditionalInformation((int)id);
+            var listings = await _context.Listings
+                //.Include(l => l.Subcategory)
+                //.Include(l => l.User)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (listings == null)
             {
                 return NotFound();
@@ -225,7 +290,9 @@ namespace AdvertSite.Controllers
         [Authorize(Roles ="Admin,User")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-           await  DeleteUserListing(id);
+            var listings = await _context.Listings.FindAsync(id);
+            _context.Listings.Remove(listings);
+            await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
@@ -234,7 +301,9 @@ namespace AdvertSite.Controllers
         [Authorize(Roles ="Admin")]
         public async Task<IActionResult> DenyListing(int id)
         {
-            await DeleteUserListing(id);
+            var listings = await _context.Listings.FindAsync(id);
+            _context.Listings.Remove(listings);
+            await _context.SaveChangesAsync();
             /*
              *  Vartotojui turetu issiusti zinute, kad jo skelbimas buvo atmestas. 
              */
@@ -249,7 +318,10 @@ namespace AdvertSite.Controllers
         [Authorize(Roles ="Admin")]
         public async Task<IActionResult> ApproveListing(int id)
         {
-            await ApproveUserListing(id);
+            var listings = await _context.Listings.FindAsync(id);
+            listings.Verified = 1;
+            _context.Listings.Update(listings);
+            await _context.SaveChangesAsync();
             /*
              *  Vartotojui turetu issiusti zinute, kad jo skelbimas buvo priimtas.
              */
@@ -263,7 +335,10 @@ namespace AdvertSite.Controllers
         [Authorize(Roles ="Admin")]
         public async Task<IActionResult> Hide(int id)
         {
-            await HideUserListing(id);
+            var listings = await _context.Listings.FindAsync(id);
+            listings.Display = 0;
+            _context.Listings.Update(listings);
+            await _context.SaveChangesAsync();
             /*
              *  Vartotojui turetu issiusti zinute, kad jo skelbimas buvo priimtas.
              */
@@ -283,146 +358,9 @@ namespace AdvertSite.Controllers
         #region HelperMethods
         //--------------------------------------------------------HELPER METHODS---------------------------------------------------
 
-        public async Task ApproveUserListing(int id)
-        {
-            var listings = await _context.Listings.FindAsync(id);
-            listings.Verified = 1;
-            _context.Listings.Update(listings);
-            await _context.SaveChangesAsync();
-        }
-
-
-        // Also, if denied
-        public async Task DeleteUserListing(int id)
-        {
-            var listings = await _context.Listings.FindAsync(id);
-            _context.Listings.Remove(listings);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task HideUserListing(int id)
-        {
-            var listings = await _context.Listings.FindAsync(id);
-            listings.Display = 0;
-            _context.Listings.Update(listings);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task EditUserListing(Listings listings)
-        {
-            listings.Display = 1;
-            listings.Verified = 0;
-            _context.Update(listings);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task CreatePicture(int listingId, IFormFile picture)
-        {
-            if (picture.Length > 0)
-            {
-                var pic = new ListingPictures { ListingId = listingId, ContentType = picture.ContentType };
-                _context.Add(pic);
-                await _context.SaveChangesAsync();
-
-                string[] filenameAndExtension = picture.FileName.Split('.');
-                filenameAndExtension[0] = pic.PictureId.ToString();
-
-                string fileName = filenameAndExtension[0] + "." + filenameAndExtension[1];
-
-                string path = "UserPictures" + "\\" + fileName;
-                path = Path.GetFullPath(path);
-
-                pic.FileName = fileName;
-                _context.ListingPictures.Update(pic);
-                using (var stream = new FileStream(path, FileMode.Create))
-                {
-                    await picture.CopyToAsync(stream);
-                }
-            }
-        }
-        public async  Task<List<Listings>> GetListingsByCategoriesAndSubCategories(String queryType = null, String queryKey = null, int? id = null)
-        {
-            queryKey = queryKey.ToLower();
-            var result = _context.Listings.Where(l => l.Verified == 1 && l.Display == 1).Include(l => l.ListingPictures);
-            if (queryType != null)
-            {
-                if (queryType.Equals("Category"))
-                    result = result
-                       .Where(l => l.Subcategory.Categoryid == id)
-                       .Include(l => l.ListingPictures);
-                else if (queryType.Equals("Subcategory"))
-                    result = result
-                        .Where(l => l.Subcategoryid == id)
-                        .Include(l => l.ListingPictures);
-                else if (queryType.Equals("Search"))
-                    if (queryKey != null)
-                        result = result
-                            .Where(l => l.Name.ToLower().Contains(queryKey) || l.Description.ToLower().Contains(queryKey))
-                            .Include(l => l.ListingPictures);
-                    else if (queryType.Equals("MyListings"))
-                        result = _context.Listings
-                            .Where(l => l.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)))
-                            .Include(l => l.ListingPictures);
-            }
-
-
-            return await result.ToListAsync();
-        }
-
-        public async Task<Listings> GetListingWithAdditionalInformation(int id)
-        {
-            return await _context.Listings
-                .Include(l => l.ListingPictures)
-                .Include(l => l.Subcategory)
-                .Include(l => l.User)
-                .Include(l => l.Subcategory.Category)
-                .Include(l => l.Comments)
-                .ThenInclude((Comments c) => c.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-        }
-
-        public async Task<Listings> GetListingWithoutAdditionalsInfomration(int id)
-        {
-            return await _context.Listings.FindAsync(id);
-        }
-
-        public async Task<List<Listings>> GetUncomfirmedListings()
-        {
-            return await _context.Listings.Where(l => l.Verified == 0).Include(l => l.ListingPictures).ToListAsync();
-        }
-
         public bool ListingsExists(int id)
         {
             return _context.Listings.Any(e => e.Id == id);
-        }
-
-        public Listings CreateListing(ListingNewModel newListing)
-        {
-            Listings listings = new Listings()
-            {
-                Subcategoryid = newListing.Subcategoryid,
-                Name = newListing.Name,
-                Description = newListing.Description,
-                Price = newListing.Price,
-                GoogleLatitude = newListing.GoogleLatitude,
-                GoogleLongitude = newListing.GoogleLongitude,
-                GoogleRadius = newListing.GoogleRadius * 1000
-            };
-
-            listings.Userid = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            listings.Date = DateTime.Now;
-            listings.Display = 1;
-            listings.Verified = 0;
-            /*
-            listings.GoogleLongitude = 0;// newListing.GoogleLongitude;
-            listings.GoogleLatitude = 0;// newListing.GoogleLatitude;
-            listings.GoogleRadius = 10000;// newListing.GoogleRadius;
-            */
-            _context.Add(listings);
-            _context.SaveChanges();
-
-            return listings;
         }
         public const int ImageMaximumBytes = 10000000;
 

@@ -1,5 +1,6 @@
 using AdvertSite.Controllers;
 using AdvertSite.Models;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System;
 using System.Threading.Tasks;
@@ -10,14 +11,11 @@ namespace AdvertSiteTests.Controllers
     public class ListingPicturesControllerTests : IDisposable
     {
         private MockRepository mockRepository;
-
-        private Mock<advert_siteContext> mockadvert_siteContext;
-
+        private advert_siteContext context;
         public ListingPicturesControllerTests()
         {
-            this.mockRepository = new MockRepository(MockBehavior.Strict);
-
-            this.mockadvert_siteContext = this.mockRepository.Create<advert_siteContext>();
+            this.context = TestHelpers.CreateFakeDbContext();
+            this.mockRepository = new MockRepository(MockBehavior.Loose);
         }
 
         public void Dispose()
@@ -25,14 +23,16 @@ namespace AdvertSiteTests.Controllers
             this.mockRepository.VerifyAll();
         }
 
-        private ListingPicturesController CreateListingPicturesController()
+        private ListingPicturesController CreateListingPicturesController(bool withUser = false)
         {
-            return new ListingPicturesController(
-                this.mockadvert_siteContext.Object);
+            var listingPicController = new ListingPicturesController(
+                this.context);
+
+            return listingPicController;
         }
 
         [Fact]
-        public async Task GetPicture_StateUnderTest_ExpectedBehavior()
+        public async Task GetPicture_PictureId_ReturnsPictureObject()
         {
             // Arrange
             var listingPicturesController = this.CreateListingPicturesController();
@@ -44,6 +44,18 @@ namespace AdvertSiteTests.Controllers
 
             // Assert
             Assert.True(false);
+        }
+
+        [Fact]
+        public async Task GetPicture_InvalidPictureId_ReturnsNotFoundView()
+        {
+            // Arrange
+            var listingPicturesController = this.CreateListingPicturesController();
+
+            var result = await listingPicturesController.GetPicture(453454);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result);
         }
     }
 }

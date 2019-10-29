@@ -29,7 +29,7 @@ namespace AdvertSiteTests.Controllers
             this.mockadvert_siteContext.Database.EnsureDeleted();
         }
 
-        private ListingPicturesController CreateListingPicturesController()
+        private ListingPicturesController CreateListingPicturesController(bool withUser = false)
         {
             return new ListingPicturesController(this.mockadvert_siteContext);
         }
@@ -57,6 +57,18 @@ namespace AdvertSiteTests.Controllers
             
             Assert.Equal(pic.FileName, Path.GetFileName(fileResult.FileName));
             Assert.Equal(pic.ContentType, fileResult.ContentType);
+        }
+
+        [Fact]
+        public async Task GetPicture_InvalidPictureId_ReturnsNotFoundView()
+        {
+            // Arrange
+            var listingPicturesController = this.CreateListingPicturesController();
+
+            var result = await listingPicturesController.GetPicture(453454);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result);
         }
     }
 }

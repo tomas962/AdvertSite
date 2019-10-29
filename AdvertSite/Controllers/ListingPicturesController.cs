@@ -25,7 +25,8 @@ namespace AdvertSite.Controllers
         public async Task<IActionResult> GetPicture(int id)
         {
             var pictureInfo = await _context.ListingPictures.FirstOrDefaultAsync((pic) => pic.PictureId == id);
-            if (pictureInfo == null) return NotFound();
+            if (pictureInfo == null)
+                return NotFound();
 
             string path = Path.GetFullPath("UserPictures\\" + pictureInfo.FileName);
 

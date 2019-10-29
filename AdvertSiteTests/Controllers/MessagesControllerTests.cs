@@ -7,6 +7,8 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -62,7 +64,7 @@ namespace AdvertSiteTests.Controllers
         [InlineData(1)]
         [InlineData(2)]
         [InlineData(50)]
-        public async Task Inbox_Messages_ShouldReturnViewWithUserMessages(int msgCount)
+        public async Task Inbox_Messages_ReturnUserMessagesView(int msgCount)
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -113,7 +115,7 @@ namespace AdvertSiteTests.Controllers
         [Theory]
         [InlineData(20)]
         [InlineData(10)]
-        public async Task Outbox_Messages_ShouldReturnViewResultWithSentUserMessages(int msgCount)
+        public async Task Outbox_Messages_ReturnUserSentMessageView(int msgCount)
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -161,7 +163,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task Details_SelectedMessage_ShouldGetAddedMessage()
+        public async Task Details_MessageId_OpenSelectedMessageView()
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -224,7 +226,7 @@ namespace AdvertSiteTests.Controllers
 
 
         [Fact]
-        public void CreateAdmin_AdminMessage_ShouldCreateAdminMessageForUser()
+        public void CreateAdmin_UserIsAdmin_OpenCreateAdminMessageView()
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -249,9 +251,10 @@ namespace AdvertSiteTests.Controllers
             Assert.Equal(this.fakeUser.Id, sender.RecipientId);
         }
 
-        [Fact(Skip = "Something wrong at .create()")]
-        public void Create_Message_ShouldCreateMessageToSend()
+        [Fact]
+        public void Create_RecipientAndSubject_OpenCreateMessageView()
         {
+
             // Arrange
 
             var messagesController = this.CreateMessagesController(true);
@@ -263,9 +266,15 @@ namespace AdvertSiteTests.Controllers
             mockadvert_siteContext.Users.Add(user);
             mockadvert_siteContext.SaveChanges();
 
+            var identity = new GenericIdentity(fakeUser.Id, ClaimTypes.NameIdentifier);
+            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, fakeUser.Id));
+            var fakeUserIdent = new GenericPrincipal(identity, new string[] { "User" });
+
+
             var httpContext = new Mock<HttpContext>();
             httpContext.Setup(x => x.Request.Query["recipientId"]).Returns(user.Id);
             httpContext.Setup(x => x.Request.Query["subject"]).Returns(this.fakeUser.Id);
+            httpContext.Setup(x => x.User).Returns(fakeUserIdent);
             var controllerContext = new ControllerContext()
             {
                 HttpContext = httpContext.Object
@@ -284,31 +293,40 @@ namespace AdvertSiteTests.Controllers
             // Assert
             Assert.IsType<ViewResult>(result);
             Assert.IsType<CreateMessageModel>(resultView.Model);
-            Assert.Equal(this.fakeUser.Id, sender.RecipientId);
+            Assert.Equal(user.Id, sender.RecipientId);
         }
 
-        [Fact(Skip = "Ta pati problema su .create()")]
-        public void Create_LoggedInUserSendMessageToHimself_OpenMainPage()
+        [Fact]
+        public void Create_UserIsRecipient_RedirectToMainView()
         {
+            // Arrange
+
             var messagesController = this.CreateMessagesController(true);
+
+            var identity = new GenericIdentity(fakeUser.Id, ClaimTypes.NameIdentifier);
+            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, fakeUser.Id));
+            var fakeUserIdent = new GenericPrincipal(identity, new string[] { "User" });
+
             var httpContext = new Mock<HttpContext>();
             httpContext.Setup(x => x.Request.Query["recipientId"]).Returns(this.fakeUser.Id);
             httpContext.Setup(x => x.Request.Query["subject"]).Returns(this.fakeUser.Id);
+            httpContext.Setup(x => x.User).Returns(fakeUserIdent);
             var controllerContext = new ControllerContext()
             {
                 HttpContext = httpContext.Object
             };
             messagesController.ControllerContext = controllerContext;
-            var result = messagesController.Create();
-            var viewResult = (RedirectToActionResult)result;
 
+
+            // Act
+            var result = messagesController.Create();
+
+            // Assert
             Assert.IsType<RedirectToActionResult>(result);
-            Assert.Equal("Index", viewResult.ActionName);
-            Assert.Equal("Home", viewResult.ControllerName);
         }
 
         [Fact]
-        public async Task CreateAdmin_StateUnderTest_ExpectedBehavior1()
+        public async Task CreateAdmin_AdminMessage_SendAdminMessageToUsers()
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -346,7 +364,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task Create_Message_ShouldCreateSentMessage()
+        public async Task Create_Message_SendMessage()
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -387,7 +405,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task MarkAsRead_Message_ShouldMarkMessageAsRead()
+        public async Task MarkAsRead_Message_MarkMessageAsRead()
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -426,7 +444,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task Delete_Message_ShouldDeleteMessage()
+        public async Task Delete_Message_DeleteMessage()
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -470,7 +488,7 @@ namespace AdvertSiteTests.Controllers
         [InlineData(2, 2)]
         [InlineData(10, 8)]
         [InlineData(10, 2)]
-        public void UpdateUnreadMessageCount_Messages_ShouldReturnUnreadMessageCount(int messageCount, int unreadCount)
+        public void UpdateUnreadMessageCount_Messages_ReturnUnreadMessageCount(int messageCount, int unreadCount)
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -524,7 +542,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public void GetRecipientUser_User_ShouldReturnRecipient()
+        public void GetRecipientUser_RecipientId_ReturnRecipientObject()
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);

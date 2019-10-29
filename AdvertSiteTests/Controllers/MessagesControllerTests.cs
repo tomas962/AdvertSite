@@ -80,8 +80,8 @@ namespace AdvertSiteTests.Controllers
                 var msg = new Messages()
                 {
                     DateSent = DateTime.Now,
-                    Subject = "TestMsg"+i,
-                    Text = "yo"+i
+                    Subject = "TestMsg" + i,
+                    Text = "yo" + i
                 };
                 mockadvert_siteContext.Messages.Add(msg);
                 mockadvert_siteContext.SaveChanges();
@@ -109,17 +109,54 @@ namespace AdvertSiteTests.Controllers
             Assert.Equal(msgCount, messages.Count());
         }
 
-        [Fact]
-        public void Outbox_StateUnderTest_ExpectedBehavior()
+        [Theory]
+        [InlineData(2)]
+        [InlineData(10)]
+        public async Task Outbox_StateUnderTest_ExpectedBehavior(int msgCount)
         {
             // Arrange
-            var messagesController = this.CreateMessagesController();
+            var messagesController = this.CreateMessagesController(true);
+            //recipient sender
+            var user = new ApplicationUser()
+            {
+                UserName = "John",
+                Email = "aerth@gmail.com"
+            };
+            mockadvert_siteContext.Users.Add(user);
+            mockadvert_siteContext.SaveChanges();
+
+            //create messages
+            for (int i = 0; i < msgCount; i++)
+            {
+                var msg = new Messages()
+                {
+                    DateSent = DateTime.Now,
+                    Subject = "TestMsg" + i,
+                    Text = "yo" + i
+                };
+                mockadvert_siteContext.Messages.Add(msg);
+                mockadvert_siteContext.SaveChanges();
+
+                var userHasMsg = new UsersHasMessages()
+                {
+                    MessagesId = msg.Id,
+                    RecipientId = user.Id,
+                    SenderId = fakeUser.Id,
+                    IsDeleted = 0,
+                    IsAdminMessage = 0
+                };
+
+                mockadvert_siteContext.UsersHasMessages.Add(userHasMsg);
+                mockadvert_siteContext.SaveChanges();
+            }
 
             // Act
-            var result = messagesController.Outbox();
-
+            var result = await messagesController.Outbox();
+            var viewResult = (ViewResult)result;
+            var messages = (IEnumerable<UsersHasMessages>)viewResult.Model;
             // Assert
-            Assert.True(false);
+            Assert.IsType<ViewResult>(result);
+            Assert.Equal(msgCount, messages.Count());
         }
 
         [Fact]
@@ -290,19 +327,39 @@ namespace AdvertSiteTests.Controllers
         public async Task MarkAsRead_StateUnderTest_ExpectedBehavior()
         {
             // Arrange
-            var messagesController = this.CreateMessagesController();
-            int id = 0;
-            string sender_id = null;
-            string recipient_id = null;
+            var messagesController = this.CreateMessagesController(true);
+            var user = new ApplicationUser()
+            {
+                UserName = "John",
+                Email = "aerth@gmail.com"
+            };
+            mockadvert_siteContext.Users.Add(user);
+
+            var msg = new UsersHasMessages()
+            {
+                Messages = new Messages()
+                {
+                    Subject = "Test Subject",
+                    Text = "Test Text"
+                },
+                RecipientId = this.fakeUser.Id,
+                SenderId = user.Id,
+                IsAdminMessage = 0,
+                AlreadyRead = 0,
+                IsDeleted = 0
+            };
+            mockadvert_siteContext.UsersHasMessages.Add(msg);
+
+            mockadvert_siteContext.SaveChanges();
 
             // Act
-            var result = await messagesController.MarkAsRead(
-                id,
-                sender_id,
-                recipient_id);
+            var result = await messagesController.MarkAsRead(msg.MessagesId, user.Id, fakeUser.Id);
+
+            var userMessage = mockadvert_siteContext.UsersHasMessages.FirstOrDefault(x => x.MessagesId == msg.MessagesId && user.Id.Equals(x.SenderId) && fakeUser.Id.Equals(x.RecipientId));
 
             // Assert
-            Assert.True(false);
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.True(userMessage.AlreadyRead == 1);
         }
 
         [Fact]
@@ -324,17 +381,61 @@ namespace AdvertSiteTests.Controllers
             Assert.True(false);
         }
 
-        [Fact]
-        public void UpdateUnreadMessageCount_StateUnderTest_ExpectedBehavior()
+        [Theory]
+        [InlineData(2, 2)]
+        [InlineData(10, 8)]
+        [InlineData(10, 2)]
+        public void UpdateUnreadMessageCount_StateUnderTest_ExpectedBehavior(int messageCount, int unreadCount)
         {
             // Arrange
-            var messagesController = this.CreateMessagesController();
+            var messagesController = this.CreateMessagesController(true);
+            //recipient sender
+            var user = new ApplicationUser()
+            {
+                UserName = "John",
+                Email = "aerth@gmail.com"
+            };
+            mockadvert_siteContext.Users.Add(user);
+            mockadvert_siteContext.SaveChanges();
+
+            int counter = 0;
+            //create messages
+            for (int i = 0; i < messageCount; i++)
+            {
+                var msg = new Messages()
+                {
+                    DateSent = DateTime.Now,
+                    Subject = "TestMsg" + i,
+                    Text = "yo" + i
+                };
+                mockadvert_siteContext.Messages.Add(msg);
+                mockadvert_siteContext.SaveChanges();
+
+                var userHasMsg = new UsersHasMessages()
+                {
+                    MessagesId = msg.Id,
+                    RecipientId = fakeUser.Id,
+                    SenderId = user.Id,
+                    IsDeleted = 0,
+                    IsAdminMessage = 0,
+                    AlreadyRead = 1
+                };
+
+                if (counter < unreadCount)
+                {
+                    userHasMsg.AlreadyRead = 0;
+                    counter++;
+                }
+
+                mockadvert_siteContext.UsersHasMessages.Add(userHasMsg);
+                mockadvert_siteContext.SaveChanges();
+            }
 
             // Act
             var result = messagesController.UpdateUnreadMessageCount();
 
             // Assert
-            Assert.True(false);
+            Assert.Equal(unreadCount, result);
         }
 
         [Fact]

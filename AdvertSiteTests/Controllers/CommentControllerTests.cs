@@ -51,22 +51,47 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public void Create_StateUnderTest_ExpectedBehavior()
+        public async Task Create_ListingId_CommentOpenView()
         {
             // Arrange
-            var commentController = this.CreateCommentController(false);
-            int id = 0;
+            var commentController = this.CreateCommentController(true);
+            var listing = new Listings()
+            {
+                Name = "Cool train",
+                Description = "The greatest train of all time",
+                Userid = this.fakeUser.Id,
+                Display = 1,
+                Verified = 1,
+                Price = 500000.0
+            };
+            mockadvert_siteContext.Listings.Add(listing);
+            await mockadvert_siteContext.SaveChangesAsync();
 
             // Act
-            var result = commentController.Create(
-                id);
+            var result = commentController.Create(listing.Id);
 
             // Assert
-            Assert.True(false);
+            Assert.IsType<ViewResult>(result);
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldCreateComment()
+        public void Create_InvalidListingId_RedirectToMainPage()
+        {
+            // Arrange
+            var commentController = this.CreateCommentController(true);
+
+            // Act
+            var result = commentController.Create(450);
+            var resultView = (RedirectToActionResult)result;
+
+            // Assert
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Index", resultView.ActionName);
+            Assert.Equal("Home", resultView.ControllerName);
+        }
+
+        [Fact]
+        public async Task CreateAsync_Comment_CreateNewComment()
         {
             // Arrange
             var commentController = this.CreateCommentController(true);
@@ -99,7 +124,7 @@ namespace AdvertSiteTests.Controllers
         }
         
         [Fact]
-        public async Task CreateAjax_ShouldCreateComment()
+        public async Task CreateAjax_Comment_ShouldCreateComment()
         {
             // Arrange
             var commentController = this.CreateCommentController(true);
@@ -139,7 +164,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public void Delete_ShouldDeleteSelectedComment ()
+        public void Delete_CommentId_OpenViewResult ()
         {
             // Arrange
             var commentController = this.CreateCommentController(true);
@@ -154,15 +179,60 @@ namespace AdvertSiteTests.Controllers
             mockadvert_siteContext.Listings.Add(listing);
             mockadvert_siteContext.SaveChanges();
 
-            // Act
-            //var result = commentController.Delete(id);
+            var comment = new Comments()
+            {
+                Listingid = listing.Id,
+                Text = "HAHA",
+            };
+            mockadvert_siteContext.Comments.Add(comment);
+            mockadvert_siteContext.SaveChanges();
+
+            var result = commentController.Delete(comment.Id);
 
             // Assert
-            Assert.True(false);
+            Assert.IsType<ViewResult>(result);
+
         }
 
         [Fact]
-        public async Task DeleteConfirmed_ShouldDeleteSelectedComment()
+        public void Delete_InvalidId_OpenRedirectToMainPage()
+        {
+            // Arrange
+            var commentController = this.CreateCommentController(true);
+
+            //create new listing for comment
+            Listings listing = new Listings()
+            {
+                Name = "good Car",
+                Description = "easy free car :(",
+                Userid = fakeUser.Id
+            };
+            mockadvert_siteContext.Listings.Add(listing);
+            mockadvert_siteContext.SaveChanges();
+
+            var result = commentController.Delete(8648);
+            var res = (RedirectToActionResult)result;
+            // Assert
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Index", res.ActionName);
+            Assert.Equal("Home", res.ControllerName);
+        }
+
+
+        [Fact]
+        public void Delete_UnspecifiedId_OpenNotFoundView()
+        {
+            // Arrange
+            var commentController = this.CreateCommentController(true);
+
+            var result = commentController.Delete(null);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task DeleteConfirmed_Comment_ShouldDeleteSelectedComment()
         {
             // Arrange
             var commentController = this.CreateCommentController(true);

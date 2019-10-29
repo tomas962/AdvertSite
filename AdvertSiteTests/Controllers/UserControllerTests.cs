@@ -32,22 +32,28 @@ namespace AdvertSiteTests.Controllers
             this.mockRepository.VerifyAll();
         }
 
-        private UserController CreateUserController()
+        private UserController CreateUserController(bool withUser = false)
         {
-            return new UserController(
-                this.context);
+            var contr = new UserController(this.context);
+            if (withUser)
+            {
+                (this.fakeUser, contr.ControllerContext) = TestHelpers.FakeUserAndControllerContext(this.context);
+            }
+
+            return contr;
         }
         [Fact]
         public void Logout_StateUnderTest_ExpectedBehavior()
         {
             // Arrange
-            var userController = this.CreateUserController();
+            var userController = this.CreateUserController(true);
 
             // Act
             var result = userController.Logout();
 
             // Assert
-            Assert.True(false);
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.True(false); // session
         }
 
         [Fact]

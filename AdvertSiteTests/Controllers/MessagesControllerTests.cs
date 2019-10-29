@@ -47,20 +47,20 @@ namespace AdvertSiteTests.Controllers
         public void Index_StateUnderTest_ExpectedBehavior()
         {
             // Arrange
-            var messagesController = this.CreateMessagesController();
+            var messagesController = this.CreateMessagesController(true);
 
             // Act
             var result = messagesController.Index();
 
             // Assert
-            Assert.True(false);
+            Assert.IsType<RedirectToActionResult>(result);
         }
 
         [Theory]
         [InlineData(1)]
         [InlineData(2)]
         [InlineData(50)]
-        public void Inbox_ShouldReturnViewWithUserMessages(int msgCount)
+        public async Task Inbox_ShouldReturnViewWithUserMessages(int msgCount)
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -99,7 +99,7 @@ namespace AdvertSiteTests.Controllers
             }
 
             // Act
-            var result = messagesController.Inbox();
+            var result = await messagesController.Inbox();
             var viewResult = (ViewResult)result;
             var messages = (IEnumerable<UsersHasMessages>)viewResult.Model;
 
@@ -122,7 +122,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public void Details_ShouldGetAddedMessage()
+        public async Task Details_ShouldGetAddedMessage()
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -157,7 +157,7 @@ namespace AdvertSiteTests.Controllers
             mockadvert_siteContext.SaveChanges();
 
             // Act
-            var result = messagesController.Details(msgToAdd.Id);
+            var result = await messagesController.Details(msgToAdd.Id);
             var viewResult = (ViewResult)result;
             var addedMsg = (Messages)viewResult.Model;
 
@@ -263,51 +263,6 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public void GetUserInbox_StateUnderTest_ExpectedBehavior()
-        {
-            // Arrange
-            var messagesController = this.CreateMessagesController();
-            String userId = null;
-
-            // Act
-            var result = messagesController.GetUserInbox(
-                userId);
-
-            // Assert
-            Assert.True(false);
-        }
-
-        [Fact]
-        public void GetUserOutbox_StateUnderTest_ExpectedBehavior()
-        {
-            // Arrange
-            var messagesController = this.CreateMessagesController();
-            String userId = null;
-
-            // Act
-            var result = messagesController.GetUserOutbox(
-                userId);
-
-            // Assert
-            Assert.True(false);
-        }
-
-        [Fact]
-        public void GetMessage_StateUnderTest_ExpectedBehavior()
-        {
-            // Arrange
-            var messagesController = this.CreateMessagesController();
-            int id = 0;
-
-            // Act
-            var result = messagesController.GetMessage(
-                id);
-
-            // Assert
-            Assert.True(false);
-        }
-
-        [Fact]
         public void UpdateUnreadMessageCount_StateUnderTest_ExpectedBehavior()
         {
             // Arrange
@@ -324,15 +279,13 @@ namespace AdvertSiteTests.Controllers
         public void GetRecipientUser_StateUnderTest_ExpectedBehavior()
         {
             // Arrange
-            var messagesController = this.CreateMessagesController();
-            String id = null;
+            var messagesController = this.CreateMessagesController(true);
 
             // Act
-            var result = messagesController.GetRecipientUser(
-                id);
+            var result = messagesController.GetRecipientUser(this.fakeUser.Id);
 
             // Assert
-            Assert.True(false);
+            Assert.Equal(this.fakeUser.Id, result.Id);
         }
     }
 }

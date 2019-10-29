@@ -30,6 +30,7 @@ namespace AdvertSiteTests.Controllers
         public void Dispose()
         {
             this.mockRepository.VerifyAll();
+            mockadvert_siteContext.Database.EnsureDeleted();
         }
 
         private HomeController CreateHomeController(bool withUser = false)

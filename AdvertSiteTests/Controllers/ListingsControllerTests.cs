@@ -24,7 +24,7 @@ namespace AdvertSiteTests.Controllers
             this.mockUserManager = TestHelpers.TestUserManager<ApplicationUser>();
             this.context = TestHelpers.CreateFakeDbContext();
             this.mockRepository = new MockRepository(MockBehavior.Strict);
-
+            
             List<Category> categoryList = new List<Category>()
             {
                 new Category()
@@ -77,6 +77,7 @@ namespace AdvertSiteTests.Controllers
             */
 
             this.mockRepository.VerifyAll();
+            this.context.Database.EnsureDeleted();
         }
         private ListingsController CreateListingsController(Boolean withUser = false)
         {
@@ -152,7 +153,7 @@ namespace AdvertSiteTests.Controllers
             int unconfirmedCount = list.FindAll(x => x.Verified == 0).Count;
             context.Listings.AddRange(list);
             await context.SaveChangesAsync();
-
+            
             var result = await listingsController.UncomfirmedListings();
             var viewResult = (ViewResult)result;
             var unconfirmedListings = (List<Listings>)viewResult.Model;
@@ -534,7 +535,7 @@ namespace AdvertSiteTests.Controllers
         [InlineData(4501788, true)]
         public async Task ListingsExists_ListingId_ReturnBool(int id, bool expectedResponse)
         {
-            var listingsController = this.CreateListingsController();
+            var listingsController = this.CreateListingsController(true);
             List<Listings> list = new List<Listings>()
             {
                 GenerateListing( id: 5555),
@@ -545,8 +546,11 @@ namespace AdvertSiteTests.Controllers
                 GenerateListing( id: 54728767),
             };
 
-            context.Listings.AddRange(list);
-            await context.SaveChangesAsync();
+            foreach (var item in list)
+            {
+                context.Listings.Add(item);
+            }
+            context.SaveChanges();
 
             bool result = listingsController.ListingsExists(id);
 

@@ -37,6 +37,7 @@ namespace AdvertSiteTests.Controllers
         public void Dispose()
         {
             this.mockRepository.VerifyAll();
+            mockadvert_siteContext.Database.EnsureDeleted();
         }
 
         private CommentController CreateCommentController(bool withUser)

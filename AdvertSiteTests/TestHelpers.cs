@@ -44,7 +44,7 @@ namespace AdvertSiteTests
         public static advert_siteContext CreateFakeDbContext()
         {
             var dbOptions = new DbContextOptionsBuilder<advert_siteContext>()
-            .UseInMemoryDatabase(databaseName: "test")
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
             return new advert_siteContext(dbOptions);
         }

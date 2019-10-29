@@ -30,6 +30,7 @@ namespace AdvertSiteTests.Controllers
         public void Dispose()
         {
             this.mockRepository.VerifyAll();
+            mockadvert_siteContext.Database.EnsureDeleted();
         }
 
         private MessagesController CreateMessagesController(bool withUser = false)
@@ -45,7 +46,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public void Index_StateUnderTest_ExpectedBehavior()
+        public void Index_Messages_ShouldReturnRedirectToIndox()
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -61,7 +62,7 @@ namespace AdvertSiteTests.Controllers
         [InlineData(1)]
         [InlineData(2)]
         [InlineData(50)]
-        public async Task Inbox_ShouldReturnViewWithUserMessages(int msgCount)
+        public async Task Inbox_Messages_ShouldReturnViewWithUserMessages(int msgCount)
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -110,9 +111,9 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Theory]
-        [InlineData(2)]
+        [InlineData(20)]
         [InlineData(10)]
-        public async Task Outbox_StateUnderTest_ExpectedBehavior(int msgCount)
+        public async Task Outbox_Messages_ShouldReturnViewResultWithSentUserMessages(int msgCount)
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -160,7 +161,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task Details_ShouldGetAddedMessage()
+        public async Task Details_SelectedMessage_ShouldGetAddedMessage()
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -207,7 +208,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public void CreateAdmin_StateUnderTest_ExpectedBehavior()
+        public void CreateAdmin_AdminMessage_ShouldCreateAdminMessageForUser()
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -233,7 +234,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact(Skip = "Something wrong at .create()")]
-        public void Create_StateUnderTest_ExpectedBehavior()
+        public void Create_Message_ShouldCreateMessageToSend()
         {
             // Arrange
 
@@ -309,22 +310,48 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task Create_StateUnderTest_ExpectedBehavior1()
+        public async Task Create_Message_ShouldCreateSentMessage()
         {
             // Arrange
-            var messagesController = this.CreateMessagesController();
-            CreateMessageModel model = null;
+            var messagesController = this.CreateMessagesController(true);
+
+            var userRecipient = new ApplicationUser() {
+                Email = "AAGGEE@gmail.com",
+                UserName = "Bob"
+            };
+            mockadvert_siteContext.Users.Add(userRecipient);
+            mockadvert_siteContext.SaveChanges();
+
+            var msg = new Messages() {
+                Subject = "Helo",
+                Text = "Sup"
+            };
+
+
+            var userHasMsgs = new UsersHasMessages() {
+                IsDeleted = 0,
+                MessagesId = msg.Id,
+                RecipientId = userRecipient.Id,
+                Sender = fakeUser,
+                Messages = msg
+            };
+            var model = new CreateMessageModel() {
+                Message = msg,
+                RecipientId = userRecipient.Id,
+                UsersHasMessages = userHasMsgs
+            };
 
             // Act
-            var result = await messagesController.Create(
-                model);
+            var result = await messagesController.Create(model);
+            var redirResult = (RedirectToActionResult)result;
 
             // Assert
-            Assert.True(false);
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal(nameof(messagesController.Index), redirResult.ActionName);
         }
 
         [Fact]
-        public async Task MarkAsRead_StateUnderTest_ExpectedBehavior()
+        public async Task MarkAsRead_Message_ShouldMarkMessageAsRead()
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -363,29 +390,51 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task Delete_StateUnderTest_ExpectedBehavior()
+        public async Task Delete_Message_ShouldDeleteMessage()
         {
             // Arrange
-            var messagesController = this.CreateMessagesController();
-            int id = 0;
-            string sender_id = null;
-            string recipient_id = null;
+            var messagesController = this.CreateMessagesController(true);
+
+            //add recipient
+            var recipientUser = new ApplicationUser() {
+                Email = "lglaerg@gmail.com",
+                UserName = "Jerry"
+            };
+            mockadvert_siteContext.Add(recipientUser);
+
+            //add msg
+            var msg = new Messages() {
+                Subject = "Delete me",
+                Text = "LOL"
+            };
+            mockadvert_siteContext.Add(msg);
+            mockadvert_siteContext.SaveChanges();
+
+            var userHasMsg = new UsersHasMessages() {
+                MessagesId = msg.Id,
+                RecipientId = recipientUser.Id,
+                SenderId = fakeUser.Id,
+                IsDeleted = 0
+            };
+            mockadvert_siteContext.UsersHasMessages.Add(userHasMsg);
+            mockadvert_siteContext.SaveChanges();
+
 
             // Act
             var result = await messagesController.Delete(
-                id,
-                sender_id,
-                recipient_id);
+                userHasMsg.MessagesId,
+                userHasMsg.SenderId,
+                userHasMsg.RecipientId);
 
             // Assert
-            Assert.True(false);
+            Assert.Equal((short)1, userHasMsg.IsDeleted);
         }
 
         [Theory]
         [InlineData(2, 2)]
         [InlineData(10, 8)]
         [InlineData(10, 2)]
-        public void UpdateUnreadMessageCount_StateUnderTest_ExpectedBehavior(int messageCount, int unreadCount)
+        public void UpdateUnreadMessageCount_Messages_ShouldReturnUnreadMessageCount(int messageCount, int unreadCount)
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);
@@ -439,7 +488,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public void GetRecipientUser_StateUnderTest_ExpectedBehavior()
+        public void GetRecipientUser_User_ShouldReturnRecipient()
         {
             // Arrange
             var messagesController = this.CreateMessagesController(true);

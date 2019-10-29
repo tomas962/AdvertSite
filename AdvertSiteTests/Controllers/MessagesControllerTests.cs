@@ -207,6 +207,22 @@ namespace AdvertSiteTests.Controllers
             Assert.Equal(msgToAdd.Subject, addedMsg.Subject);
         }
 
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(null)]
+        public async Task Details_InvalidId_OpenNotFoundView(int id)
+        {
+            // Arrange
+            var messagesController = this.CreateMessagesController(true);
+
+            // Act
+            var result = await messagesController.Details(id);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result);
+        }
+
+
         [Fact]
         public void CreateAdmin_AdminMessage_ShouldCreateAdminMessageForUser()
         {
@@ -269,6 +285,26 @@ namespace AdvertSiteTests.Controllers
             Assert.IsType<ViewResult>(result);
             Assert.IsType<CreateMessageModel>(resultView.Model);
             Assert.Equal(this.fakeUser.Id, sender.RecipientId);
+        }
+
+        [Fact(Skip = "Ta pati problema su .create()")]
+        public void Create_LoggedInUserSendMessageToHimself_OpenMainPage()
+        {
+            var messagesController = this.CreateMessagesController(true);
+            var httpContext = new Mock<HttpContext>();
+            httpContext.Setup(x => x.Request.Query["recipientId"]).Returns(this.fakeUser.Id);
+            httpContext.Setup(x => x.Request.Query["subject"]).Returns(this.fakeUser.Id);
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext.Object
+            };
+            messagesController.ControllerContext = controllerContext;
+            var result = messagesController.Create();
+            var viewResult = (RedirectToActionResult)result;
+
+            Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Index", viewResult.ActionName);
+            Assert.Equal("Home", viewResult.ControllerName);
         }
 
         [Fact]

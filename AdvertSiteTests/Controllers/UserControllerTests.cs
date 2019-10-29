@@ -44,7 +44,7 @@ namespace AdvertSiteTests.Controllers
             return contr;
         }
         [Fact(Skip = "Not implemented")]
-        public void Logout_StateUnderTest_ExpectedBehavior()
+        public void Logout_ValidSession_EndSession()
         {
             // Arrange
             var userController = this.CreateUserController(true);
@@ -58,7 +58,7 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Fact]
-        public async Task DetailsShouldGetUserInformation()
+        public async Task Details_UserId_OpenUserInformationView()
         {
             var userController = CreateUserController();
             var user = new ApplicationUser()
@@ -80,6 +80,18 @@ namespace AdvertSiteTests.Controllers
             Assert.IsType<ViewResult>(result);
             Assert.IsType<ApplicationUser>(retrievedUser);
             Assert.Equal(retrievedUser.Id, user.Id);
+        }
+
+        [Theory]
+        [InlineData("testId")]
+        [InlineData(null)]
+        public async Task Details_InvalidUserId_OpenNotFoundView(string id)
+        {
+            var userController = CreateUserController();
+
+            var result = await userController.Details(id);
+
+            Assert.IsType<NotFoundResult>(result);
         }
     }
 }

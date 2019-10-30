@@ -41,9 +41,14 @@ namespace AdvertSite.Controllers
             else if (Request.Query["type"].Equals("Subcategory"))
                 masterContext = masterContext.Where(l => l.Subcategoryid == id);
             else if (Request.Query["type"].Equals("Search"))
-                masterContext = masterContext.Where(l => l.Name.Contains(Request.Query["key"]) || l.Description.Contains(Request.Query["key"]));
+                masterContext = masterContext.Where(l => l.Name.ToLower().Contains(Request.Query["key"].ToString().ToLower()) || l.Description.ToLower().Contains(Request.Query["key"].ToString().ToLower()));
             else if (Request.Query["type"].Equals("MyListings"))
+            {
+                if (this.User.FindFirstValue(ClaimTypes.NameIdentifier) == null)
+                    return NotFound();
+
                 masterContext = _context.Listings.Where(l => l.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)));
+            }
 
             return View(await masterContext.ToListAsync());
         }

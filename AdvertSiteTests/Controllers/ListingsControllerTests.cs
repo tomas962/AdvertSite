@@ -71,15 +71,10 @@ namespace AdvertSiteTests.Controllers
 
         public void Dispose()
         {
-            /*
-            foreach (var entity in context.Listings)
-                context.Listings.Remove(entity);
-            context.SaveChanges();
-            */
-
             this.mockRepository.VerifyAll();
             this.context.Database.EnsureDeleted();
         }
+
         private ListingsController CreateListingsController(Boolean withUser = false)
         {
             var listingController = new ListingsController(
@@ -94,12 +89,13 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Theory]
-        [InlineData("Subcategory", null, 10, 5)]
-        [InlineData("Category", null, 5, 7)]
-        [InlineData("Search", "mouse", null, 3)]
-        [InlineData("Test", "test", 15666, 9)]
-        [InlineData(null, null, null, 9)]
-        public async Task Index_RequestQuery_OpenAllListingView(string type, string key, int? id, int expectedResult)
+        [InlineData("Subcategory", null, 10, true, 5)]
+        [InlineData("Category", null, 5, true, 7)]
+        [InlineData("Search", "mouse", null, true, 3)]
+        [InlineData("MyListings", null, null, true, 2)]
+        [InlineData("randomstringype", "randomkeytype", 15666, true, 9)]
+        [InlineData(null, null, null, true, 9)]
+        public async Task Index_RequestQuery_OpenAllListingView(string type, string key, int? id, bool loggedIn, int expectedResult)
         {
             var httpContext = new Mock<HttpContext>();
             httpContext.Setup(x => x.Request.Query["type"]).Returns(type);
@@ -109,7 +105,7 @@ namespace AdvertSiteTests.Controllers
                 HttpContext = httpContext.Object
             };
 
-            var listingsController = this.CreateListingsController();
+            var listingsController = this.CreateListingsController(loggedIn);
             var category = new Category()
             {
                 Id = 5,
@@ -145,6 +141,11 @@ namespace AdvertSiteTests.Controllers
                 GenerateListing(subcategoryid: 11, verified: 1, display: 1),
                 GenerateListing(subcategoryid: 11, verified: 0, display: 0),
             };
+            if (loggedIn)
+            {
+                list[0].Userid = fakeUser.Id;
+                list[1].Userid = fakeUser.Id;
+            }
             context.Listings.AddRange(list);
             await context.SaveChangesAsync();
 

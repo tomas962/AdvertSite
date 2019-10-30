@@ -96,7 +96,7 @@ namespace AdvertSiteTests.Controllers
         [Theory]
         [InlineData("Subcategory", null, 10, 5)]
         [InlineData("Category", null, 5, 7)]
-        [InlineData("Search", "mouse", null, 2)]
+        [InlineData("Search", "mouse", null, 3)]
         [InlineData("Test", "test", 15666, 9)]
         [InlineData(null, null, null, 9)]
         public async Task Index_RequestQuery_OpenAllListingView(string type, string key, int? id, int expectedResult)
@@ -191,10 +191,15 @@ namespace AdvertSiteTests.Controllers
         {
             // Arrange
             var listingsController = this.CreateListingsController(true);
+            var category = new Category() { Name = "Test", Id = 5 };
+            var subcategory = new Subcategory() { Name = "TESTAS", Id = 5, Categoryid = 5 };
+            context.Category.Add(category);
+            context.Subcategory.Add(subcategory);
+            await context.SaveChangesAsync();
 
             List<Listings> list = new List<Listings>()
             {
-                GenerateListing(verified: 0, subcategoryid: 1, userid: this.fakeUser.Id),
+                GenerateListing(verified: 0, subcategoryid: 5, userid: this.fakeUser.Id),
                 GenerateListing(verified: 0),
                 GenerateListing(verified: 0),
                 GenerateListing(verified: 1,  userid: this.fakeUser.Id),
@@ -542,12 +547,36 @@ namespace AdvertSiteTests.Controllers
             Assert.IsType<RedirectToActionResult>(result);
             Assert.Null(deniedListing);
         }
+        [Fact]
+        public async Task DenyListing_UserListingNotAdmin_OpenForbidView()
+        {
+            // Arrange
+            var listingsController = this.CreateListingsController(true);
+            List<Listings> list = new List<Listings>()
+            {
+                GenerateListing(verified: 0),
+                GenerateListing(verified: 0),
+                GenerateListing(verified: 0)
+            };
+
+            context.Listings.AddRange(list);
+            await context.SaveChangesAsync();
+
+            var result = await listingsController.DenyListing(list[0].Id);
+
+            var deniedListing = await context.Listings.FindAsync(list[0].Id);
+
+            Assert.IsType<ForbidResult>(result);
+            Assert.NotNull(deniedListing);
+        }
 
         [Fact]
         public async Task ApproveListing_UserListing_MarkAsApproved()
         {
             // Arrange
             var listingsController = this.CreateListingsController();
+            var user = new ApplicationUser() { UserName = "Adam", Email = "test@gamil.com" };
+
             List<Listings> list = new List<Listings>()
             {
                 GenerateListing(verified: 0),
@@ -564,6 +593,29 @@ namespace AdvertSiteTests.Controllers
 
             Assert.IsType<RedirectToActionResult>(result);
             Assert.True(approvedListing.Verified == 1);
+        }
+
+        [Fact]
+        public async Task ApproveListing_UserListingNotAdmin_OpenForbidView()
+        {
+            // Arrange
+            var listingsController = this.CreateListingsController(true);
+
+            List<Listings> list = new List<Listings>()
+            {
+                GenerateListing(verified: 0),
+                GenerateListing(verified: 0)
+            };
+
+            context.Listings.AddRange(list);
+            await context.SaveChangesAsync();
+
+            var result = await listingsController.ApproveListing(list[0].Id);
+
+            var approvedListing = await context.Listings.FindAsync(list[0].Id);
+
+            Assert.IsType<ForbidResult>(result);
+            Assert.True(approvedListing.Verified == 0);
         }
 
         [Fact]
@@ -586,6 +638,29 @@ namespace AdvertSiteTests.Controllers
             Assert.IsType<RedirectToActionResult>(result);
             Assert.True(hiddenListing.Display == 0);
         }
+        
+        [Fact]
+        public async Task Hide_UserListingInvalidUser_OpenNotFoundView()
+        {
+            var listingsController = this.CreateListingsController();
+
+            List<Listings> list = new List<Listings>()
+            {
+                GenerateListing(display: 0, userid: "test"),
+                GenerateListing(display: 0)
+            };
+
+            context.Listings.AddRange(list);
+            await context.SaveChangesAsync();
+
+            var result = await listingsController.Hide(list[0].Id);
+
+            var hiddenListing = await context.Listings.FindAsync(list[0].Id);
+
+            Assert.IsType<NotFoundResult>(result);
+            Assert.True(hiddenListing.Display == 1);
+        }
+
 
         [Fact]
         public async Task ListingsJSON_ListingsInDatabase_ReturnJson()

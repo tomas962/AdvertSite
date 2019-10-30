@@ -622,7 +622,7 @@ namespace AdvertSiteTests.Controllers
         public void IsImage_StateUnderTest_ExpectedBehavior(string imageName, bool expectedResult)
         {
             // Arrange
-            var picStream = new FileStream("UserPictures\\" + imageName, FileMode.Open);
+            var picStream = new FileStream("../../../TestUserPictures/" + imageName, FileMode.Open);
 
             var image = new FormFile(picStream, 0, picStream.Length, imageName, imageName)
             {

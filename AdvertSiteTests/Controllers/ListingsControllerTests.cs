@@ -94,10 +94,11 @@ namespace AdvertSiteTests.Controllers
         }
 
         [Theory]
-        [InlineData("Subcategory", null, 1, 5)]
-        [InlineData("Category", null, 1, 8)]
+        [InlineData("Subcategory", null, 10, 5)]
+        [InlineData("Category", null, 5, 7)]
         [InlineData("Search", "mouse", null, 2)]
         [InlineData("Test", "test", 15666, 9)]
+        [InlineData(null, null, null, 9)]
         public async Task Index_RequestQuery_OpenAllListingView(string type, string key, int? id, int expectedResult)
         {
             var httpContext = new Mock<HttpContext>();
@@ -109,19 +110,40 @@ namespace AdvertSiteTests.Controllers
             };
 
             var listingsController = this.CreateListingsController();
+            var category = new Category()
+            {
+                Id = 5,
+                Name = "cars"
+            };
+            var subcategory = new Subcategory()
+            {
+                Id = 10,
+                Categoryid = 5,
+                Name = "BMW"
+            };
+            var subcategory2 = new Subcategory()
+            {
+                Id = 11,
+                Categoryid = 5,
+                Name = "Audi"
+            };
+            context.Category.Add(category);
+            context.Subcategory.Add(subcategory);
+            context.Subcategory.Add(subcategory2);
+            await context.SaveChangesAsync();
 
             List<Listings> list = new List<Listings>()
             {
                 GenerateListing(subcategoryid: 4, verified: 1, display: 1, name: "mouse"),
-                GenerateListing(subcategoryid: 1, verified: 1, display: 1),
-                GenerateListing(subcategoryid: 1, verified: 1, display: 1, name: "keyboard"),
-                GenerateListing(subcategoryid: 1, verified: 1, display: 1),
-                GenerateListing(subcategoryid: 1, verified: 1, display: 1),
-                GenerateListing(subcategoryid: 1, verified: 1, display: 1, name: "Mouse123"),
+                GenerateListing(subcategoryid: 10, verified: 1, display: 1),
+                GenerateListing(subcategoryid: 10, verified: 1, display: 1, name: "keyboard"),
+                GenerateListing(subcategoryid: 10, verified: 1, display: 1),
+                GenerateListing(subcategoryid: 10, verified: 1, display: 1),
+                GenerateListing(subcategoryid: 10, verified: 1, display: 1, name: "Mouse123"),
                 GenerateListing(subcategoryid: 3, verified: 1, display: 1, name: "ASDASDASD"),
-                GenerateListing(subcategoryid: 2, verified: 1, display: 1, name: "test", description: "good mouse"),
-                GenerateListing(subcategoryid: 2, verified: 1, display: 1),
-                GenerateListing(subcategoryid: 2, verified: 0, display: 0),
+                GenerateListing(subcategoryid: 11, verified: 1, display: 1, name: "test", description: "good mouse"),
+                GenerateListing(subcategoryid: 11, verified: 1, display: 1),
+                GenerateListing(subcategoryid: 11, verified: 0, display: 0),
             };
             context.Listings.AddRange(list);
             await context.SaveChangesAsync();
@@ -169,6 +191,7 @@ namespace AdvertSiteTests.Controllers
         {
             // Arrange
             var listingsController = this.CreateListingsController(true);
+
             List<Listings> list = new List<Listings>()
             {
                 GenerateListing(verified: 0, subcategoryid: 1, userid: this.fakeUser.Id),

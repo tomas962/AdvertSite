@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using AdvertSite.Models;
-using System.Security.Claims;
+﻿using AdvertSite.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace AdvertSite.Controllers
 {
@@ -23,12 +21,12 @@ namespace AdvertSite.Controllers
             _context = context;
             _userManager = userManager;
         }
-        
+
         // GET: Comment/Create/4
         [Authorize(Roles = "Admin,User")]
         public IActionResult Create(int id)
         {
-                // Jeigu skelbimas su duotu id yra
+            // Jeigu skelbimas su duotu id yra
             if (_context.Listings.Select(c => c.Id == id && c.Verified == 1 && c.Display == 1).Count() > 0)
                 return View();
 
@@ -81,7 +79,7 @@ namespace AdvertSite.Controllers
 
                 _context.Add(comment);
                 await _context.SaveChangesAsync();
-                
+
                 return Ok();
             }
 
@@ -140,7 +138,8 @@ namespace AdvertSite.Controllers
 
             var coms = comments.Select((item) =>
             {
-                if (User.IsInRole("Admin") || item.Userid.Equals(_userManager.GetUserId(User))) {
+                if (User.IsInRole("Admin") || item.Userid.Equals(_userManager.GetUserId(User)))
+                {
                     return new
                     {
                         id = item.Id,
@@ -150,7 +149,7 @@ namespace AdvertSite.Controllers
                         canDelete = true
                     };
                 }
-                    else
+                else
                 {
                     return new
                     {
@@ -162,7 +161,7 @@ namespace AdvertSite.Controllers
                     };
                 }
             });
-            
+
             return Ok(coms);
         }
     }

@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using AdvertSite.Models;
+﻿using AdvertSite.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace AdvertSite.Controllers
 {
@@ -52,7 +51,7 @@ namespace AdvertSite.Controllers
         // GET: MEssages/OutBox
         [Authorize(Roles = "Admin,User")]
         [HttpGet]
-        public async Task< IActionResult> Outbox()
+        public async Task<IActionResult> Outbox()
         {
             var advert_siteContext = await _context.UsersHasMessages
                 .Where(m => m.SenderId == _userManager.GetUserId(User) && m.IsDeleted == 0 && m.IsAdminMessage == 0)
@@ -67,7 +66,7 @@ namespace AdvertSite.Controllers
 
         // GET: Messages/Details/5
         [Authorize(Roles = "Admin,User")]
-        public async Task <IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
@@ -155,7 +154,7 @@ namespace AdvertSite.Controllers
 
             return View(model);
         }
-        
+
         // POST: Messages/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -166,7 +165,7 @@ namespace AdvertSite.Controllers
         {
 
             var sender = _context.Users.FirstOrDefaultAsync(user => user.Id == _userManager.GetUserId(User));
-            model.UsersHasMessages =new UsersHasMessages { Sender = await sender };
+            model.UsersHasMessages = new UsersHasMessages { Sender = await sender };
             //model.Message = await sender;
 
             //model.Message.SenderId = model.Message.Sender.Id;

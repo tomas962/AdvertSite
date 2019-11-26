@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
+﻿using AdvertSite.Models;
 using Microsoft.AspNetCore.Authorization;
-using AdvertSite.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 namespace AdvertSite.Areas.Identity.Pages.Account
 {
@@ -25,7 +22,7 @@ namespace AdvertSite.Areas.Identity.Pages.Account
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger//,
-            //IEmailSender emailSender
+                                         //IEmailSender emailSender
             )
         {
             _userManager = userManager;

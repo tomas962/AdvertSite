@@ -1,19 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using AdvertSite.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using AdvertSite.Models;
-using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+using System;
 using System.IO;
-using Microsoft.AspNetCore.Http;
+using System.Linq;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
-using System.Drawing;
-using Microsoft.EntityFrameworkCore.Query;
+using System.Threading.Tasks;
 
 namespace AdvertSite.Controllers
 {
@@ -89,13 +86,13 @@ namespace AdvertSite.Controllers
         }
 
         // GET: Listings/Create
-        [Authorize(Roles ="Admin,User")]
+        [Authorize(Roles = "Admin,User")]
         public IActionResult Create(ListingNewModel listingModel)
         {
             ViewData["Subcategoryid"] = new SelectList(_context.Subcategory, "Id", "Name");
             ViewData["Userid"] = new SelectList(_context.Users, "Id", "UserName");
             if (TempData.ContainsKey("PictureError")) ViewData["PictureError"] = TempData["PictureError"];
-                ModelState.Clear();
+            ModelState.Clear();
             return View(listingModel);
         }
 
@@ -104,7 +101,7 @@ namespace AdvertSite.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles ="Admin,User")]
+        [Authorize(Roles = "Admin,User")]
         [ActionName("Create")]
         public async Task<IActionResult> CreatePost([Bind("Subcategoryid,Name,Description,Price,GoogleLatitude,GoogleLongitude,GoogleRadius,ListingPictures")] ListingNewModel newListing)
         {
@@ -138,8 +135,8 @@ namespace AdvertSite.Controllers
 
                 if (newListing.ListingPictures != null && newListing.ListingPictures.Count() > 4) //jei nuotrauku daugiau nei 4 atmetam 
                 {
-                    TempData["PictureError"] = "Nuotraukų negali būti daugiau nei 4!";                    
-                    return RedirectToAction(nameof(Create),newListing);
+                    TempData["PictureError"] = "Nuotraukų negali būti daugiau nei 4!";
+                    return RedirectToAction(nameof(Create), newListing);
                 }
 
                 if (newListing.ListingPictures != null)
@@ -195,7 +192,7 @@ namespace AdvertSite.Controllers
         }
 
         // GET: Listings/Edit/5
-        [Authorize(Roles ="Admin,User")]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -225,7 +222,7 @@ namespace AdvertSite.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles ="Admin,User")]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Userid,Subcategoryid,Name,Description,Price,Quantity,Date,Verified,Display,GoogleLatitude,GoogleLongitude,GoogleRadius")] Listings listings)
         {
             if (!listings.Userid.Equals(this.User.FindFirstValue(ClaimTypes.NameIdentifier)) && !this.User.IsInRole("Admin"))
@@ -268,7 +265,7 @@ namespace AdvertSite.Controllers
 
 
         // GET: Listings/Delete/5
-        [Authorize(Roles ="Admin,User")]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -291,7 +288,7 @@ namespace AdvertSite.Controllers
         // POST: Listings/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles ="Admin,User")]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
@@ -302,7 +299,7 @@ namespace AdvertSite.Controllers
         }
 
         [HttpPost, ActionName("DenyListing")]
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DenyListing(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
@@ -319,7 +316,7 @@ namespace AdvertSite.Controllers
         }
 
         [HttpPost, ActionName("ApproveListing")]
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ApproveListing(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
@@ -336,7 +333,7 @@ namespace AdvertSite.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Hide(int id)
         {
             var listings = await _context.Listings.FindAsync(id);
@@ -440,7 +437,7 @@ namespace AdvertSite.Controllers
             }
 
             return true;
-        } 
+        }
         #endregion
 
     }

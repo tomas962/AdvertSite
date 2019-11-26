@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using AdvertSite.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using AdvertSite.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Identity.UI.Services;
+using System;
+using System.Threading.Tasks;
 
 namespace AdvertSite
 {
@@ -66,7 +62,7 @@ namespace AdvertSite
                 options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
                 options.Conventions.AuthorizeAreaPage("Identity", "/Account/Logout");
             });
-            
+
 
             services.ConfigureApplicationCookie(options =>
             {
@@ -75,7 +71,7 @@ namespace AdvertSite
                 options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
             });
 
-            
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -121,45 +117,45 @@ namespace AdvertSite
         private async Task CreateRoles(IServiceProvider serviceProvider)
         {
 
-                // Seed database code goes here
+            // Seed database code goes here
 
-                //initializing custom roles 
-                var RoleManager = serviceProvider.CreateScope().ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-                var UserManager = serviceProvider.CreateScope().ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-                string[] roleNames = { "Admin", "User" };
-                IdentityResult roleResult;
+            //initializing custom roles 
+            var RoleManager = serviceProvider.CreateScope().ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var UserManager = serviceProvider.CreateScope().ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            string[] roleNames = { "Admin", "User" };
+            IdentityResult roleResult;
 
-                foreach (var roleName in roleNames)
+            foreach (var roleName in roleNames)
+            {
+                var roleExist = await RoleManager.RoleExistsAsync(roleName);
+                if (!roleExist)
                 {
-                    var roleExist = await RoleManager.RoleExistsAsync(roleName);
-                    if (!roleExist)
-                    {
-                        //create the roles and seed them to the database: Question 1
-                        roleResult = await RoleManager.CreateAsync(new IdentityRole(roleName));
-                    }
+                    //create the roles and seed them to the database: Question 1
+                    roleResult = await RoleManager.CreateAsync(new IdentityRole(roleName));
                 }
+            }
 
-                //Here you could create a super user who will maintain the web app
-                var poweruser = new ApplicationUser
+            //Here you could create a super user who will maintain the web app
+            var poweruser = new ApplicationUser
+            {
+                UserName = "admin@gmail.com",
+                Email = "admin@gmail.com",
+            };
+            //Ensure you have these values in your appsettings.json file
+            string userPWD = "Admin1*";
+            var _user = await UserManager.FindByEmailAsync("admin@gmail.com");
+
+            if (_user == null)
+            {
+                var createPowerUser = await UserManager.CreateAsync(poweruser, userPWD);
+                if (createPowerUser.Succeeded)
                 {
-                    UserName = "admin@gmail.com",
-                    Email = "admin@gmail.com",
-                };
-                //Ensure you have these values in your appsettings.json file
-                string userPWD = "Admin1*";
-                var _user = await UserManager.FindByEmailAsync("admin@gmail.com");
+                    //here we tie the new user to the role
+                    await UserManager.AddToRoleAsync(poweruser, "Admin");
 
-                if (_user == null)
-                {
-                    var createPowerUser = await UserManager.CreateAsync(poweruser, userPWD);
-                    if (createPowerUser.Succeeded)
-                    {
-                        //here we tie the new user to the role
-                        await UserManager.AddToRoleAsync(poweruser, "Admin");
-
-                    }
                 }
-            
+            }
+
         }
     }
 }

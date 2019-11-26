@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace AdvertSite.Models
+﻿namespace AdvertSite.Models
 {
     public partial class UsersHasMessages
     {
@@ -13,7 +9,7 @@ namespace AdvertSite.Models
         public Messages Messages { get; set; }
         public short? AlreadyRead { get; set; }
         public short? IsDeleted { get; set; }
-         
+
         public ApplicationUser Recipient { get; set; }
         public ApplicationUser Sender { get; set; }
     }
